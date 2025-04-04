@@ -21,12 +21,6 @@ help:
 	@echo "  serve				- serve the application"
 	@echo "  dev				- serve application in development mode with hot reload"
 	@echo
-	@echo "Tools:"
-	@echo "  install-tools			- Download and install proto related tools"
-	@echo
-	@echo "Actions:"
-	@echo "  gen-rpc			- generate proto files"
-	@echo
 	@echo "Database:"
 	@echo "  rollback			- Rollback the last migration"
 	@echo "  rebuild			- Rebuild migrations"
@@ -42,22 +36,6 @@ serve:
 .PHONY: dev
 dev:
 	@air
-
-.PHONY: install-tools
-install-tools:
-	@echo "Installing tools..."
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-	go install github.com/pressly/goose/v3/cmd/goose@latest
-	go install github.com/air-verse/air@latest
-	@echo "Done..."
-	@$(MAKE) gen-rpc
-
-.PHONY: gen-rpc
-gen-rpc:
-	@echo "Generating proto files..."
-	@protoc --proto_path=../proto/ --go_out=. --go-grpc_out=. $(PROTO_PATH)/*
-	@echo "Done..."
 
 .PHONY: create-db
 create-db:

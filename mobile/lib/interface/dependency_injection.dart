@@ -4,10 +4,13 @@ import 'package:mobile/dependency_injection.dart';
 import 'package:mobile/interface/login/login_view.dart';
 import 'package:mobile/interface/login/login_view_model.dart';
 import 'package:mobile/interface/routes.dart';
+import 'package:mobile/services/greet_service/greet_service.dart';
 
 extension InterfaceInjection on DependencyInjection {
   _addViewModels(GetIt it) {
-    it.registerFactory(() => LoginViewModel());
+    var greetService = it<GreetService>();
+
+    it.registerFactory(() => LoginViewModel(greetService));
   }
 
   _addViews(GetIt it) {

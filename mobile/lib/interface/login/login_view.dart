@@ -3,7 +3,7 @@ import 'package:mobile/core/view.dart';
 import 'package:mobile/core/view_model.dart';
 import 'package:mobile/interface/login/login_view_model.dart';
 
-class LoginView extends LinearView<LoginViewModel> {
+final class LoginView extends LinearView<LoginViewModel> {
   const LoginView({super.key, required super.viewModel});
 
   @override

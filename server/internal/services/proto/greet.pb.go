@@ -119,7 +119,7 @@ const file_greet_proto_rawDesc = "" +
 	"\rHelloResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage2E\n" +
 	"\fGreetService\x125\n" +
-	"\bSayHello\x12\x13.greet.HelloRequest\x1a\x14.greet.HelloResponseB\x1bZ\x19./internal/services/protob\x06proto3"
+	"\bSayHello\x12\x13.greet.HelloRequest\x1a\x14.greet.HelloResponseB\"Z ./server/internal/services/protob\x06proto3"
 
 var (
 	file_greet_proto_rawDescOnce sync.Once

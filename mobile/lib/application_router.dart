@@ -5,7 +5,7 @@ import 'package:mobile/core/navigation/navigation_guard.dart';
 import 'package:mobile/core/navigation/navigation_manager.dart';
 import 'package:mobile/core/view.dart';
 
-class ApplicationRouter<TView extends LinearView> {
+final class ApplicationRouter<TView extends LinearView> {
   final ApplicationNavigation router = NavigationGuard(
     route: AppRoute.root,
     view: (context, state) {
