@@ -45,9 +45,13 @@ func validateLicensePlate(plate string) bool {
 	return re.MatchString(plate)
 }
 
-func (as *AuthServiceImpl) Register(context context.Context, request *proto.RegisterEntryRequest) (*proto.AuthResponse, error) {
+func (as *AuthServiceImpl) Register(context context.Context, request *proto.RegisterEntryRequest) (*proto.RegisterResponse, error) {
 	if !validateLicensePlate(request.CarPlate) {
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid license place format: %s", request.CarPlate)
+	}
+
+	if !as.authRepo.ExistsLicensePlate(request.CarPlate) {
+		return nil, status.Error(codes.AlreadyExists, "License Plate already registered, speak with the manager of the park")
 	}
 
 	secretKey, err := helpers.GenerateSecretKey()
@@ -79,7 +83,7 @@ func (as *AuthServiceImpl) Register(context context.Context, request *proto.Regi
 		return nil, status.Error(codes.Canceled, "An error occorred while generating access keys, please try again later... ")
 	}
 
-	return &proto.AuthResponse{
+	return &proto.RegisterResponse{
 		AccessToken:  accessToken.Token,
 		RefreshToken: refreshToken.Token,
 		MAC:          base64.StdEncoding.EncodeToString(mac),

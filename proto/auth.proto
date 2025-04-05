@@ -5,7 +5,7 @@ package auth;
 option go_package = "./server/internal/services/proto";
 
 service AuthService {
-  rpc Register (RegisterEntryRequest) returns (AuthResponse);
+  rpc Register (RegisterEntryRequest) returns (RegisterResponse);
   rpc Login (LoginEntryRequest) returns (AuthResponse);
 }
 
@@ -18,8 +18,13 @@ message LoginEntryRequest {
   string MAC = 2;
 }
 
-message AuthResponse {
+message RegisterResponse {
   string accessToken = 1;
   string refreshToken = 2;
   string MAC = 3;
+}
+
+message AuthResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
 }

@@ -129,8 +129,8 @@ class LoginEntryRequest extends $pb.GeneratedMessage {
   void clearMAC() => $_clearField(2);
 }
 
-class AuthResponse extends $pb.GeneratedMessage {
-  factory AuthResponse({
+class RegisterResponse extends $pb.GeneratedMessage {
+  factory RegisterResponse({
     $core.String? accessToken,
     $core.String? refreshToken,
     $core.String? mAC,
@@ -147,6 +147,80 @@ class AuthResponse extends $pb.GeneratedMessage {
     }
     return $result;
   }
+  RegisterResponse._() : super();
+  factory RegisterResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RegisterResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RegisterResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'auth'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'accessToken', protoName: 'accessToken')
+    ..aOS(2, _omitFieldNames ? '' : 'refreshToken', protoName: 'refreshToken')
+    ..aOS(3, _omitFieldNames ? '' : 'MAC', protoName: 'MAC')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  RegisterResponse clone() => RegisterResponse()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RegisterResponse copyWith(void Function(RegisterResponse) updates) => super.copyWith((message) => updates(message as RegisterResponse)) as RegisterResponse;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RegisterResponse create() => RegisterResponse._();
+  RegisterResponse createEmptyInstance() => create();
+  static $pb.PbList<RegisterResponse> createRepeated() => $pb.PbList<RegisterResponse>();
+  @$core.pragma('dart2js:noInline')
+  static RegisterResponse getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RegisterResponse>(create);
+  static RegisterResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get accessToken => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set accessToken($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasAccessToken() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAccessToken() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get refreshToken => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set refreshToken($core.String v) { $_setString(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasRefreshToken() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRefreshToken() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get mAC => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set mAC($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasMAC() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMAC() => $_clearField(3);
+}
+
+class AuthResponse extends $pb.GeneratedMessage {
+  factory AuthResponse({
+    $core.String? accessToken,
+    $core.String? refreshToken,
+  }) {
+    final $result = create();
+    if (accessToken != null) {
+      $result.accessToken = accessToken;
+    }
+    if (refreshToken != null) {
+      $result.refreshToken = refreshToken;
+    }
+    return $result;
+  }
   AuthResponse._() : super();
   factory AuthResponse.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory AuthResponse.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -154,7 +228,6 @@ class AuthResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthResponse', package: const $pb.PackageName(_omitMessageNames ? '' : 'auth'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'accessToken', protoName: 'accessToken')
     ..aOS(2, _omitFieldNames ? '' : 'refreshToken', protoName: 'refreshToken')
-    ..aOS(3, _omitFieldNames ? '' : 'MAC', protoName: 'MAC')
     ..hasRequiredFields = false
   ;
 
@@ -196,15 +269,6 @@ class AuthResponse extends $pb.GeneratedMessage {
   $core.bool hasRefreshToken() => $_has(1);
   @$pb.TagNumber(2)
   void clearRefreshToken() => $_clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.String get mAC => $_getSZ(2);
-  @$pb.TagNumber(3)
-  set mAC($core.String v) { $_setString(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasMAC() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearMAC() => $_clearField(3);
 }
 
 

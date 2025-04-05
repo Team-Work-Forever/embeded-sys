@@ -39,9 +39,9 @@ final $typed_data.Uint8List loginEntryRequestDescriptor = $convert.base64Decode(
     'ChFMb2dpbkVudHJ5UmVxdWVzdBIaCghjYXJQbGF0ZRgBIAEoCVIIY2FyUGxhdGUSEAoDTUFDGA'
     'IgASgJUgNNQUM=');
 
-@$core.Deprecated('Use authResponseDescriptor instead')
-const AuthResponse$json = {
-  '1': 'AuthResponse',
+@$core.Deprecated('Use registerResponseDescriptor instead')
+const RegisterResponse$json = {
+  '1': 'RegisterResponse',
   '2': [
     {'1': 'accessToken', '3': 1, '4': 1, '5': 9, '10': 'accessToken'},
     {'1': 'refreshToken', '3': 2, '4': 1, '5': 9, '10': 'refreshToken'},
@@ -49,8 +49,22 @@ const AuthResponse$json = {
   ],
 };
 
+/// Descriptor for `RegisterResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List registerResponseDescriptor = $convert.base64Decode(
+    'ChBSZWdpc3RlclJlc3BvbnNlEiAKC2FjY2Vzc1Rva2VuGAEgASgJUgthY2Nlc3NUb2tlbhIiCg'
+    'xyZWZyZXNoVG9rZW4YAiABKAlSDHJlZnJlc2hUb2tlbhIQCgNNQUMYAyABKAlSA01BQw==');
+
+@$core.Deprecated('Use authResponseDescriptor instead')
+const AuthResponse$json = {
+  '1': 'AuthResponse',
+  '2': [
+    {'1': 'accessToken', '3': 1, '4': 1, '5': 9, '10': 'accessToken'},
+    {'1': 'refreshToken', '3': 2, '4': 1, '5': 9, '10': 'refreshToken'},
+  ],
+};
+
 /// Descriptor for `AuthResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authResponseDescriptor = $convert.base64Decode(
     'CgxBdXRoUmVzcG9uc2USIAoLYWNjZXNzVG9rZW4YASABKAlSC2FjY2Vzc1Rva2VuEiIKDHJlZn'
-    'Jlc2hUb2tlbhgCIAEoCVIMcmVmcmVzaFRva2VuEhAKA01BQxgDIAEoCVIDTUFD');
+    'Jlc2hUb2tlbhgCIAEoCVIMcmVmcmVzaFRva2Vu');
 

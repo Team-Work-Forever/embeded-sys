@@ -27,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
-	Register(ctx context.Context, in *RegisterEntryRequest, opts ...grpc.CallOption) (*AuthResponse, error)
+	Register(ctx context.Context, in *RegisterEntryRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	Login(ctx context.Context, in *LoginEntryRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 }
 
@@ -39,9 +39,9 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) Register(ctx context.Context, in *RegisterEntryRequest, opts ...grpc.CallOption) (*AuthResponse, error) {
+func (c *authServiceClient) Register(ctx context.Context, in *RegisterEntryRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthResponse)
+	out := new(RegisterResponse)
 	err := c.cc.Invoke(ctx, AuthService_Register_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginEntryRequest, op
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
 type AuthServiceServer interface {
-	Register(context.Context, *RegisterEntryRequest) (*AuthResponse, error)
+	Register(context.Context, *RegisterEntryRequest) (*RegisterResponse, error)
 	Login(context.Context, *LoginEntryRequest) (*AuthResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -75,7 +75,7 @@ type AuthServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAuthServiceServer struct{}
 
-func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterEntryRequest) (*AuthResponse, error) {
+func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterEntryRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginEntryRequest) (*AuthResponse, error) {

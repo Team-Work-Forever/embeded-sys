@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+type EntityTime time.Time
+
 type Entity interface {
 	GetId() string
 }
@@ -16,8 +18,8 @@ type Entity interface {
 type EntityBase struct {
 	ID        string `gorm:"type:char(26);primaryKey;column:id"`
 	PublicId  string
-	CreatedAt time.Time       `gorm:"column:created_at;<-:update"`
-	UpdatedAt time.Time       `gorm:"column:updated_at;<-:update"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	DeletedAt *gorm.DeletedAt `gorm:"index"`
 }
 
