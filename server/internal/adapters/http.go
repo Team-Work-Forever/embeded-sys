@@ -38,8 +38,11 @@ func (h *HttpServer) Serve(endpoints *internal.Endpoints, port string) error {
 	h.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(STATIC_PATH))))
 	endpoints.RegisterEndpoints(h.router)
 
-	log.Printf("Starting HTTP instance on %s...\n", port)
 	return h.instance.ListenAndServe()
+}
+
+func (h *HttpServer) GetAddr() string {
+	return h.instance.Addr
 }
 
 func (h *HttpServer) Shutdown(context context.Context) error {

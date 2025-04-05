@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -9,6 +10,7 @@ import (
 	"server/internal/adapters"
 	"server/internal/services"
 	"server/pkg"
+	"server/pkg/utils"
 	"syscall"
 )
 
@@ -54,6 +56,18 @@ func main() {
 	// start shared services
 	go startHttpServer(httpServer, endpoints, env.HTTP_SERVER_PORT)
 	go startGRPCServer(grpcServer, env.GRPC_SERVER_PORT)
+
+	utils.DrawRectangle([]utils.Entry{
+		&utils.CenterBlock{BlockItem: utils.BlockItem{Value: "Raspberry Pi & Arduino", Color: utils.Red}},
+		&utils.EntryBlock{
+			Title: utils.BlockItem{Value: "Listning on...", Color: utils.Blue},
+			Value: utils.BlockItem{Value: fmt.Sprintf("http://%s:%s", "localhost", env.HTTP_SERVER_PORT), Color: utils.Green},
+		},
+		&utils.EntryBlock{
+			Title: utils.BlockItem{Value: "Listning on...", Color: utils.Blue},
+			Value: utils.BlockItem{Value: fmt.Sprintf("grpc://%s:%s", "localhost", env.GRPC_SERVER_PORT), Color: utils.Green},
+		},
+	})
 
 	// Gracefull exit
 	stop := make(chan os.Signal, 1)

@@ -34,8 +34,6 @@ func (rpc *GRPCServer) Serve(port string) error {
 		return err
 	}
 
-	log.Printf("Server is running on port %s...\n", port)
-
 	if err := rpc.instance.Serve(listAddr); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
