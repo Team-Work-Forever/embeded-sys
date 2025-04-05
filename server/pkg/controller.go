@@ -5,5 +5,5 @@ import (
 )
 
 type Controller interface {
-	Register(*grpc.Server)
+	RegisterControllers(*grpc.Server)
 }

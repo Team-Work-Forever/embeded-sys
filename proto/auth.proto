@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "./server/internal/services/proto";
+
+service AuthService {
+  rpc Register (RegisterEntryRequest) returns (AuthResponse);
+  rpc Login (LoginEntryRequest) returns (AuthResponse);
+}
+
+message RegisterEntryRequest {
+  string carPlate = 1;
+}
+
+message LoginEntryRequest {
+  string carPlate = 1;
+  string MAC = 2;
+}
+
+message AuthResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+  string MAC = 3;
+}

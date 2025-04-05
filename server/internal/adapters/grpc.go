@@ -21,7 +21,7 @@ func NewRPCServer() (*GRPCServer, error) {
 
 func (rpc *GRPCServer) RegisterServices(controllers []pkg.Controller) error {
 	for i := range controllers {
-		controllers[i].Register(rpc.instance)
+		controllers[i].RegisterControllers(rpc.instance)
 	}
 
 	return nil

@@ -12,6 +12,7 @@ help:
 	@echo "  install-tools			- Download and install proto related tools"
 	@echo
 	@echo "Actions:"
+	@echo "  docker			- init docker compose"
 	@echo "  gen			- generate proto files"
 	@echo "  gen-flutter			- generate proto files for the mobile application"
 	@echo "  gen-go			- generate proto files for the server application"
@@ -26,6 +27,10 @@ install-tools:
 	@echo "Done..."
 	@$(MAKE) gen-go
 	@$(MAKE) gen-flutter
+
+.PHONY: docker
+docker: 
+	@docker-compose -f ./server/docker-compose.yml up --build -d
 
 .PHONY: gen
 gen: gen-flutter gen-go

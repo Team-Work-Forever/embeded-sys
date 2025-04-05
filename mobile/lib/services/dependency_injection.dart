@@ -4,12 +4,12 @@ import 'package:mobile/core/helpers/api_client.dart';
 import 'package:mobile/dependency_injection.dart';
 import 'package:mobile/services/greet_service/greet_service.dart';
 import 'package:mobile/services/greet_service/greet_service_impl.dart';
-import 'package:mobile/services/proto/greet.pbgrpc.dart';
+import 'package:mobile/services/proto/auth.pbgrpc.dart';
 
 extension ServiceInjection on DependencyInjection {
   void _addGrpcClients(GetIt it) {
-    it.registerFactoryParam<GreetServiceClient, ClientChannel, void>(
-      (channel, _) => GreetServiceClient(channel),
+    it.registerFactoryParam<AuthServiceClient, ClientChannel, void>(
+      (channel, _) => AuthServiceClient(channel),
     );
   }
 

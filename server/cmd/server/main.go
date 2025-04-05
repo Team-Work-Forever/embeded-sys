@@ -8,8 +8,10 @@ import (
 	"server/config"
 	"server/internal"
 	"server/internal/adapters"
+	"server/internal/repositories"
 	"server/internal/services"
 	"server/pkg"
+	"server/pkg/helpers"
 	"server/pkg/utils"
 	"syscall"
 )
@@ -18,9 +20,21 @@ func main() {
 	config.LoadEnv(config.DotEnv)
 	env := config.GetCofig()
 
+	// generate pkis
+	if err := generatePki(); err != nil {
+		panic(err)
+	}
+
+	if err := generateJWKS(); err != nil {
+		panic(err)
+	}
+
 	// database
 	db := adapters.GetDatabase()
 	defer db.Close()
+
+	redis := adapters.GetRedis()
+	defer redis.Close()
 
 	// rpc server
 	grpcServer, err := adapters.NewRPCServer()
@@ -45,12 +59,16 @@ func main() {
 	// bluetooth client
 	/// 1. Must be another process always checking new devices connecting to the pull the modules
 
+	// repositories
+	authRepository := repositories.NewAuthRepository(db)
+
 	// service registration
-	greet_service := services.NewGreetService()
+	tokenHelper := helpers.NewTokenService(redis)
+	authService := services.NewAuthServiceImpl(authRepository, tokenHelper)
 
 	// start service
 	grpcServer.RegisterServices([]pkg.Controller{
-		greet_service,
+		authService,
 	})
 
 	// start shared services
@@ -75,6 +93,37 @@ func main() {
 
 	<-stop
 	log.Println("Shutting down servers...")
+}
+
+func generatePki() error {
+	if !helpers.MustCreatePKI() {
+		if err := helpers.GenerateServerPKI(); err != nil {
+			return err
+		}
+	}
+
+	// load pki
+	publicKey, privateKey, err := helpers.ReadKeys()
+
+	if err != nil {
+		return err
+	}
+
+	err = helpers.LoadKeys(privateKey, publicKey)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generateJWKS() error {
+	if _, err := helpers.NewJWKS(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func startHttpServer(httpServer *adapters.HttpServer, endpoints *internal.Endpoints, httpPort string) {

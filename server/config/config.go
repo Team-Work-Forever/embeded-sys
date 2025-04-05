@@ -11,6 +11,15 @@ type Config struct {
 	HTTP_SERVER_PORT string
 
 	DB_SQL_PATH string
+
+	JWT_AUDIENCE                  string
+	JWT_ISSUER                    string
+	JWT_ACCESS_EXPIRED_IN_MINUTES int
+	JWT_REFRESH_EXPIRED_IN_HOURS  int
+
+	REDIS_HOST string
+	REDIS_PORT string
+	REDIS_DB   int
 }
 
 func LoadEnv(path string) {
@@ -29,6 +38,15 @@ func LoadEnv(path string) {
 		HTTP_SERVER_PORT: viper.GetString("HTTP_SERVER_PORT"),
 
 		DB_SQL_PATH: viper.GetString("DB_SQL_PATH"),
+
+		JWT_AUDIENCE:                  viper.GetString("JWT_AUDIENCE"),
+		JWT_ISSUER:                    viper.GetString("JWT_ISSUER"),
+		JWT_ACCESS_EXPIRED_IN_MINUTES: viper.GetInt("JWT_ACCESS_EXPIRED_IN_MINUTES"),
+		JWT_REFRESH_EXPIRED_IN_HOURS:  viper.GetInt("JWT_REFRESH_EXPIRED_IN_HOURS"),
+
+		REDIS_HOST: viper.GetString("REDIS_HOST"),
+		REDIS_PORT: viper.GetString("REDIS_PORT"),
+		REDIS_DB:   viper.GetInt("REDIS_DB"),
 	}
 }
 

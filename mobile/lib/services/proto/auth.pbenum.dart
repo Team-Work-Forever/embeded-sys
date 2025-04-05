@@ -1,6 +1,6 @@
 //
 //  Generated code. Do not modify.
-//  source: greet.proto
+//  source: auth.proto
 //
 // @dart = 3.3
 
