@@ -12,6 +12,7 @@ help:
 	@echo "  install-tools			- Download and install proto related tools"
 	@echo
 	@echo "Actions:"
+	@echo "  gen			- generate proto files"
 	@echo "  gen-flutter			- generate proto files for the mobile application"
 	@echo "  gen-go			- generate proto files for the server application"
 
@@ -25,6 +26,9 @@ install-tools:
 	@echo "Done..."
 	@$(MAKE) gen-go
 	@$(MAKE) gen-flutter
+
+.PHONY: gen
+gen: gen-flutter gen-go
 
 .PHONY: gen-flutter
 gen-flutter: 
