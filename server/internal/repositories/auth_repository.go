@@ -14,6 +14,7 @@ type (
 		pkg.Repository[*domain.IdentityUser]
 
 		ExistsLicensePlate(plate string) bool
+		GetByLicense(plate string) (*domain.IdentityUser, error)
 	}
 )
 
@@ -24,5 +25,15 @@ func NewAuthRepository(database pkg.Database) *AuthRepository {
 }
 
 func (ar *AuthRepository) ExistsLicensePlate(plate string) bool {
-	return ar.Context.Statement.Where("licence_plate = ?", plate).First(&domain.IdentityUser{}).Error != nil
+	return ar.Context.Statement.Where("license_plate = ?", plate).First(&domain.IdentityUser{}).Error == nil
+}
+
+func (ar *AuthRepository) GetByLicense(plate string) (*domain.IdentityUser, error) {
+	var identityUser *domain.IdentityUser
+
+	if err := ar.Context.Statement.Where("license_plate = ?", plate).First(&identityUser).Error; err != nil {
+		return nil, err
+	}
+
+	return identityUser, nil
 }

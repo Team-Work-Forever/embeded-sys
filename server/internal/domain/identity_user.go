@@ -8,13 +8,13 @@ import (
 
 type IdentityUser struct {
 	pkg.EntityBase
-	LicencePlate string
+	LicensePlate string
 	SecretKey    string
 }
 
 func NewIdentityUser(licencePlate, secretKey string) *IdentityUser {
 	return &IdentityUser{
-		LicencePlate: licencePlate,
+		LicensePlate: licencePlate,
 		SecretKey:    secretKey,
 	}
 }

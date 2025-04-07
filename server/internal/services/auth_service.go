@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/base64"
 	"regexp"
 	"server/internal/domain"
 	"server/internal/repositories"
@@ -50,25 +49,17 @@ func (as *AuthServiceImpl) Register(context context.Context, request *proto.Regi
 		return nil, status.Errorf(codes.InvalidArgument, "Invalid license place format: %s", request.CarPlate)
 	}
 
-	if !as.authRepo.ExistsLicensePlate(request.CarPlate) {
+	if as.authRepo.ExistsLicensePlate(request.CarPlate) {
 		return nil, status.Error(codes.AlreadyExists, "License Plate already registered, speak with the manager of the park")
 	}
 
-	secretKey, err := helpers.GenerateSecretKey()
+	mac64, secret64, err := helpers.CreateSecrets(request.CarPlate)
 
 	if err != nil {
 		return nil, status.Error(codes.Aborted, "An error occorred while creating this account.")
 	}
 
-	mac := helpers.GenerateMAC(secretKey, request.CarPlate)
-
-	secretKey, err = helpers.EncryptPK(secretKey)
-
-	if err != nil {
-		return nil, status.Error(codes.Aborted, "An error occorred while creating this account.")
-	}
-
-	identityUser := domain.NewIdentityUser(request.CarPlate, string(secretKey))
+	identityUser := domain.NewIdentityUser(request.CarPlate, secret64)
 
 	if err := as.authRepo.Create(identityUser); err != nil {
 		return nil, status.Error(codes.Aborted, "An error occorred while creating this account.")
@@ -86,10 +77,41 @@ func (as *AuthServiceImpl) Register(context context.Context, request *proto.Regi
 	return &proto.RegisterResponse{
 		AccessToken:  accessToken.Token,
 		RefreshToken: refreshToken.Token,
-		MAC:          base64.StdEncoding.EncodeToString(mac),
+		MAC:          mac64,
 	}, nil
 }
 
-func (as *AuthServiceImpl) Login(context.Context, *proto.LoginEntryRequest) (*proto.AuthResponse, error) {
-	return nil, nil
+func (as *AuthServiceImpl) Login(context context.Context, request *proto.LoginEntryRequest) (*proto.AuthResponse, error) {
+	if !validateLicensePlate(request.CarPlate) {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid license place format: %s", request.CarPlate)
+	}
+
+	if !as.authRepo.ExistsLicensePlate(request.CarPlate) {
+		return nil, status.Errorf(codes.NotFound, "The license Plate %s was not found", request.CarPlate)
+	}
+
+	foundUser, err := as.authRepo.GetByLicense(request.CarPlate)
+
+	if err != nil {
+		return nil, status.Error(codes.Aborted, "An error occorred while validating this account.")
+	}
+
+	// check secret
+	if !helpers.CheckSecrets(request.CarPlate, foundUser.SecretKey, request.MAC) {
+		return nil, status.Error(codes.Aborted, "An error occorred while validating this account.")
+	}
+
+	accessToken, refreshToken, err := as.tokenHelper.CreateAuthenticationTokens(helpers.TokenPayload{
+		Id:           foundUser.PublicId,
+		LicensePlate: request.CarPlate,
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Canceled, "An error occorred while generating access keys, please try again later... ")
+	}
+
+	return &proto.AuthResponse{
+		AccessToken:  accessToken.Token,
+		RefreshToken: refreshToken.Token,
+	}, nil
 }

@@ -3,7 +3,7 @@
 CREATE TABLE auths (
   id TEXT NOT NULL,
   public_id TEXT NOT NULL UNIQUE,
-  licence_plate TEXT NOT NULL UNIQUE,
+  license_plate TEXT NOT NULL UNIQUE,
   secret_key TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
   updated_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
