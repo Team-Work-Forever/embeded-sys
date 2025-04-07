@@ -1,6 +1,7 @@
 package adapters
 
 import (
+	"log"
 	"server/config"
 	"server/pkg"
 
@@ -48,7 +49,7 @@ func GetDatabaseWithConnectionString(connectionString string) pkg.Database {
 		gormDatabase, err = newDatabaseGorm(connectionString)
 
 		if err != nil {
-			panic(err)
+			log.Fatalf("Error initializing database %s", err.Error())
 		}
 	}
 
@@ -59,7 +60,7 @@ func GetDatabase() pkg.Database {
 	connectionString := getConnectionString()
 
 	if err := config.Migrate(connectionString, false); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	return GetDatabaseWithConnectionString(connectionString)

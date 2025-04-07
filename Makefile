@@ -30,7 +30,7 @@ install-tools:
 
 .PHONY: docker
 docker: 
-	@docker-compose -f ./server/docker-compose.yml up --build -d
+	@COMPOSE_BAKE=true docker compose -f ./server/docker-compose.yml up --build -d
 
 .PHONY: gen
 gen: gen-flutter gen-go
