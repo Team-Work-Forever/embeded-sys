@@ -1,4 +1,4 @@
-import 'package:mobile/services/auth_service.dart';
+import 'package:mobile/services/auth/auth_service.dart';
 import 'package:mobile/services/base_service.dart';
 import 'package:mobile/services/proto/auth.pbgrpc.dart';
 

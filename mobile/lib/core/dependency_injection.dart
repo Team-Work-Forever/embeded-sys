@@ -5,7 +5,7 @@ import 'package:mobile/core/models/token.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
 import 'package:mobile/core/providers/auth_provider_impl.dart';
 import 'package:mobile/dependency_injection.dart';
-import 'package:mobile/services/auth_service.dart';
+import 'package:mobile/services/auth/auth_service.dart';
 
 extension CoreInjection on DependencyInjection {
   void _addProviders(GetIt it) {

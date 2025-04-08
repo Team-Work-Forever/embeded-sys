@@ -7,7 +7,7 @@ import 'package:mobile/core/models/token.dart';
 import 'package:mobile/core/models/user.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
 import 'package:mobile/core/view_model.dart';
-import 'package:mobile/services/auth_service.dart';
+import 'package:mobile/services/auth/auth_service.dart';
 
 final class AuthProviderImpl extends ViewModel implements AuthProvider {
   final AuthService _authService;

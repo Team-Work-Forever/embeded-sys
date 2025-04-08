@@ -5,7 +5,6 @@ import 'package:mobile/interface/login/login_view.dart';
 
 extension AuthRoutes on AppRoute {
   static final AppRoute auth = AppRoute(path: "auth");
-
   static final AppRoute login = AppRoute(path: "login");
 }
 
