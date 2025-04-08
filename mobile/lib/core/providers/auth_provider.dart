@@ -6,5 +6,6 @@ abstract class AuthProvider {
   Future logout();
 
   bool get isAuthenticated;
+  Future<bool> get canAuthenticate;
   AppUser get getMetadata;
 }

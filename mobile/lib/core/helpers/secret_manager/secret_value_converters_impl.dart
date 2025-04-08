@@ -17,7 +17,7 @@ class SecretValueConvertersImpl implements SecretValueConverters {
 
   SecretConverter<T> get<T extends SecretValue>() {
     var converter = _converters[T] as SecretConverter<T>?;
-    throwIf(converter == null, ConverterNotRegistered());
+    throwIf(converter == null, ConverterNotRegisteredError());
 
     return converter!;
   }

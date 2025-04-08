@@ -1,4 +1,6 @@
+import 'package:get_it/get_it.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:mobile/core/errors/failed_to_authenticate.dart';
 import 'package:mobile/core/errors/not_authenticated_error.dart';
 import 'package:mobile/core/helpers/secret_manager/secret_manager.dart';
 import 'package:mobile/core/models/token.dart';
@@ -17,6 +19,10 @@ final class AuthProviderImpl extends ViewModel implements AuthProvider {
 
   @override
   get isAuthenticated => _identityUser != null;
+
+  @override
+  Future<bool> get canAuthenticate async =>
+      (await _secretManager.get<Token>(Token.refreshToken)) != null;
 
   @override
   get getMetadata =>
@@ -40,22 +46,33 @@ final class AuthProviderImpl extends ViewModel implements AuthProvider {
 
   @override
   Future login(String licensePlate) async {
-    await _authService.login(licensePlate);
+    var fetchMac = await _secretManager.get<Token>(Token.mac);
+    throwIf(fetchMac == null, FailedToAuthenticateError());
+
+    var tokens = await _authService.login(licensePlate, fetchMac!.getValue());
+
+    throwIfNot(
+      await authenticate(tokens.accessToken, tokens.refreshToken),
+      FailedToAuthenticateError(),
+    );
   }
 
   @override
   Future register(String licensePlate) async {
     var tokens = await _authService.register(licensePlate);
 
-    if (!await authenticate(tokens.accessToken, tokens.refreshToken)) {
-      return;
-    }
+    throwIfNot(
+      await authenticate(tokens.accessToken, tokens.refreshToken),
+      FailedToAuthenticateError(),
+    );
 
     await _secretManager.store(Token.mac, Token(tokens.mAC));
   }
 
   @override
-  Future logout() {
-    throw UnimplementedError();
+  Future logout() async {
+    await _secretManager.deleteAll();
+    _identityUser = null;
+    notifyListeners();
   }
 }

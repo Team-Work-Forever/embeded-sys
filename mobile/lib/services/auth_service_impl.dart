@@ -7,9 +7,9 @@ class AuthServiceImpl extends BaseService<AuthServiceClient>
   AuthServiceImpl(super.apiClient);
 
   @override
-  Future<AuthResponse> login(String licensePlate) async {
+  Future<AuthResponse> login(String licensePlate, String mac) async {
     return await client.login(
-      LoginEntryRequest(carPlate: licensePlate, mAC: ""),
+      LoginEntryRequest(carPlate: licensePlate, mAC: mac),
     );
   }
 

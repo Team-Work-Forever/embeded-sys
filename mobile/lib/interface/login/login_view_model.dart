@@ -17,8 +17,14 @@ final class LoginViewModel extends FormViewModel {
 
   @override
   Future initAsync() async {
-    debugPrint(getAuthState());
-    await _authProvider.register("AB-12-34");
+    var licensePlate = "AB-12-34";
+
+    if (!await _authProvider.canAuthenticate) {
+      await _authProvider.register(licensePlate);
+    } else {
+      await _authProvider.login(licensePlate);
+    }
+
     debugPrint(getAuthState());
   }
 }

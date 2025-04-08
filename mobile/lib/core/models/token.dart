@@ -1,7 +1,7 @@
 import 'package:mobile/core/helpers/secret_manager/secret_converter.dart';
 import 'package:mobile/core/helpers/secret_manager/secret_value.dart';
 
-final class Token implements SecretValue {
+final class Token implements SecretValue<String> {
   static String get accessToken => "access-token";
   static String get refreshToken => "refresh-token";
   static String get mac => "mac";

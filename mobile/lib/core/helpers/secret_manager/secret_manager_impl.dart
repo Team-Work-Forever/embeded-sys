@@ -41,4 +41,9 @@ final class SecretManagerImpl implements SecretManager {
 
   @override
   SecretValueConverters getConverters() => _converters;
+
+  @override
+  Future deleteAll() {
+    return _storage.deleteAll();
+  }
 }
