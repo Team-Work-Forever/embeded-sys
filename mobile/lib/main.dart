@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/core/providers/auth_provider.dart';
+import 'package:mobile/core/view_model.dart';
 import 'package:mobile/dependency_injection.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +16,18 @@ void main() async {
   var app = DependencyInjection().setupDIContainer();
   app.build();
 
-  runApp(MainApp(appRouter: app.navigationManager.router));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create:
+              (context) =>
+                  DependencyInjection.locator<AuthProvider>() as ViewModel,
+        ),
+      ],
+      child: MainApp(appRouter: app.navigationManager.router),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {

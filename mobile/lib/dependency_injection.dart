@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:mobile/application_router.dart';
 import 'package:mobile/core/config/environment_vars.dart';
+import 'package:mobile/core/dependency_injection.dart';
 import 'package:mobile/core/helpers/api_client.dart';
 import 'package:mobile/core/helpers/nav_manager.dart';
 import 'package:mobile/core/view.dart';
@@ -33,6 +34,7 @@ class DependencyInjection {
 
     // add module
     addServices(_setUpApiClient());
+    addCore();
     addInterface(applicationRouter);
 
     return applicationRouter;
