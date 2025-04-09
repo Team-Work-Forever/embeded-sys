@@ -4,12 +4,19 @@ import 'package:mobile/core/helpers/api_client.dart';
 import 'package:mobile/dependency_injection.dart';
 import 'package:mobile/services/auth/auth_service.dart';
 import 'package:mobile/services/auth/auth_service_impl.dart';
+import 'package:mobile/services/parksense/park_sense_service.dart';
+import 'package:mobile/services/parksense/park_sense_service_impl.dart';
 import 'package:mobile/services/proto/auth.pbgrpc.dart';
+import 'package:mobile/services/proto/parksense.pbgrpc.dart';
 
 extension ServiceInjection on DependencyInjection {
   void _addGrpcClients(GetIt it) {
     it.registerFactoryParam<AuthServiceClient, ClientChannel, void>(
       (channel, _) => AuthServiceClient(channel),
+    );
+
+    it.registerFactoryParam<ParkSenseServiceClient, ClientChannel, void>(
+      (channel, _) => ParkSenseServiceClient(channel),
     );
   }
 
@@ -17,6 +24,10 @@ extension ServiceInjection on DependencyInjection {
     GetIt locator = DependencyInjection.locator;
 
     _addGrpcClients(locator);
+
     locator.registerFactory<AuthService>(() => AuthServiceImpl(apiClient));
+    locator.registerFactory<ParkSenseService>(
+      () => ParkSenseServiceImpl(apiClient),
+    );
   }
 }

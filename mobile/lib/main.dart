@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
+import 'package:mobile/core/providers/park_sense_provider.dart';
 import 'package:mobile/core/view_model.dart';
 import 'package:mobile/dependency_injection.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,11 @@ void main() async {
           create:
               (context) =>
                   DependencyInjection.locator<AuthProvider>() as ViewModel,
+        ),
+        ChangeNotifierProvider(
+          create:
+              (context) =>
+                  DependencyInjection.locator<ParkSenseProvider>() as ViewModel,
         ),
       ],
       child: MainApp(appRouter: app.navigationManager.router),

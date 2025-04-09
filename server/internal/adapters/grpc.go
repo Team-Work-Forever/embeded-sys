@@ -5,17 +5,29 @@ import (
 	"log"
 	"net"
 	"server/pkg"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type GRPCServer struct {
 	instance *grpc.Server
 }
 
+const (
+	MaxConnectionIdle = 5 * time.Minute
+	Time              = 2 * time.Minute
+	TimeOut           = 20 * time.Second
+)
+
 func NewRPCServer() (*GRPCServer, error) {
 	return &GRPCServer{
-		instance: grpc.NewServer(),
+		instance: grpc.NewServer(grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle: MaxConnectionIdle,
+			Time:              Time,
+			Timeout:           TimeOut,
+		})),
 	}, nil
 }
 

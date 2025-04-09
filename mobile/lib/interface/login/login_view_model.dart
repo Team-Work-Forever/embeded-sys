@@ -16,7 +16,12 @@ final class LoginViewModel extends FormViewModel {
 
   register(BuildContext context, String licensePlate) async {
     try {
-      await _authProvider.register(licensePlate);
+      if (!await _authProvider.canAuthenticate) {
+        await _authProvider.register(licensePlate);
+      } else {
+        await _authProvider.login(licensePlate);
+      }
+
       await _navManager.pushAsync(ProtectedRoutes.home);
     } on FailedToAuthenticateError catch (e) {
       DialogHelper.showError(context, e.toString());

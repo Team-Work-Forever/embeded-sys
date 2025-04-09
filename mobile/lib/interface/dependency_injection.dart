@@ -1,8 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:mobile/application_router.dart';
 import 'package:mobile/core/helpers/nav_manager.dart';
-import 'package:mobile/core/navigation/navigation_manager.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
+import 'package:mobile/core/providers/park_sense_provider.dart';
 import 'package:mobile/dependency_injection.dart';
 import 'package:mobile/interface/auth/home/home_view.dart';
 import 'package:mobile/interface/auth/home/home_view_model.dart';
@@ -16,8 +16,14 @@ extension InterfaceInjection on DependencyInjection {
     var navManager = it<INavigationManager>();
     var authProvider = it<AuthProvider>();
 
+    var parkSenseProvider = it<ParkSenseProvider>();
+
     it.registerFactory(() => LoginViewModel(authProvider, navManager));
-    it.registerFactory(() => HomeViewModel());
+
+    it.registerLazySingleton(
+      () => HomeViewModel(parkSenseProvider, navManager),
+      dispose: (homeViewModel) => homeViewModel.dispose(),
+    );
   }
 
   _addViews(GetIt it) {

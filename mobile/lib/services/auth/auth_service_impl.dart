@@ -2,7 +2,7 @@ import 'package:mobile/services/auth/auth_service.dart';
 import 'package:mobile/services/base_service.dart';
 import 'package:mobile/services/proto/auth.pbgrpc.dart';
 
-class AuthServiceImpl extends BaseService<AuthServiceClient>
+final class AuthServiceImpl extends BaseService<AuthServiceClient>
     implements AuthService {
   AuthServiceImpl(super.apiClient);
 

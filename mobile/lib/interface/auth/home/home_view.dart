@@ -11,7 +11,20 @@ final class HomeView extends LinearView<HomeViewModel> {
       resizeToAvoidBottomInset: false,
       body: Center(
         child: Column(
-          children: [Text("Home View"), Ink(child: Text("Log Out"))],
+          children: [
+            Text("Home View"),
+            InkWell(
+              onTap: () => viewModel.goBack(),
+              child: Container(
+                height: 40,
+                width: 140,
+                decoration: BoxDecoration(color: Colors.indigo),
+                child: Center(child: Text("Log Out")),
+              ),
+            ),
+            SizedBox(height: 40),
+            Text(viewModel.latest?.parkSetId ?? "Waiting for it"),
+          ],
         ),
       ),
     );

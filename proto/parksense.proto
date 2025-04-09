@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package parksense;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "./server/internal/services/proto";
+
+service ParkSenseService {
+  rpc StreamIncomingParkLot (google.protobuf.Empty) returns (stream ParkSet);
+}
+
+enum LotState {
+  UNKNOWN = 0;
+  FREE = 1;
+  OCCUPIED = 2;
+  RESERVED = 3;
+}
+
+enum ParkState {
+  NORMAL = 0;
+  FIRE = 1;
+}
+
+message ParkLot {
+  string park_lot_id = 1;
+  LotState state = 2;
+}
+
+message ParkSet {
+  string park_set_id = 1;
+  repeated ParkLot lots = 2;
+  ParkState state = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}

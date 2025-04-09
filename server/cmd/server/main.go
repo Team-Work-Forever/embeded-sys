@@ -57,7 +57,7 @@ func main() {
 	}
 
 	// bluetooth client
-	/// 1. Must be another process always checking new devices connecting to the pull the modules
+	bluetoothServer := adapters.NewBluetoothServer()
 
 	// repositories
 	authRepository := repositories.NewAuthRepository(db)
@@ -66,14 +66,18 @@ func main() {
 	tokenHelper := helpers.NewTokenService(redis)
 	authService := services.NewAuthServiceImpl(authRepository, tokenHelper)
 
+	parkSenseService := services.NewParkSenseServiceImpl()
+
 	// start service
 	grpcServer.RegisterServices([]pkg.Controller{
 		authService,
+		parkSenseService,
 	})
 
 	// start shared services
 	go startHttpServer(httpServer, endpoints, env.HTTP_SERVER_PORT)
 	go startGRPCServer(grpcServer, env.GRPC_SERVER_PORT)
+	go startBluetooth(bluetoothServer, parkSenseService)
 
 	utils.DrawRectangle([]utils.Entry{
 		&utils.CenterBlock{BlockItem: utils.BlockItem{Value: "Raspberry Pi & Arduino", Color: utils.Red}},
@@ -124,6 +128,12 @@ func generateJWKS() error {
 	}
 
 	return nil
+}
+
+func startBluetooth(bluetoothServer *adapters.BluetoothServer, parkService *services.ParkSenseServiceImpl) {
+	if err := bluetoothServer.Serve(parkService.RegisterModule); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func startHttpServer(httpServer *adapters.HttpServer, endpoints *internal.Endpoints, httpPort string) {
