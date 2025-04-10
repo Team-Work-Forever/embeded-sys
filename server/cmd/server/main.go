@@ -8,12 +8,15 @@ import (
 	"server/config"
 	"server/internal"
 	"server/internal/adapters"
+	"server/internal/middlewares"
 	"server/internal/repositories"
 	"server/internal/services"
 	"server/pkg"
 	"server/pkg/helpers"
 	"server/pkg/utils"
 	"syscall"
+
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -37,7 +40,12 @@ func main() {
 	defer redis.Close()
 
 	// rpc server
-	grpcServer, err := adapters.NewRPCServer()
+	tokenHelper := helpers.NewTokenService(redis)
+	authStreamInterceptor := middlewares.NewAuthMiddleware(tokenHelper)
+
+	grpcServer, err := adapters.NewRPCServer(
+		grpc.StreamInterceptor(authStreamInterceptor.Handler),
+	)
 
 	if err != nil {
 		panic(err)
@@ -63,7 +71,6 @@ func main() {
 	authRepository := repositories.NewAuthRepository(db)
 
 	// service registration
-	tokenHelper := helpers.NewTokenService(redis)
 	authService := services.NewAuthServiceImpl(authRepository, tokenHelper)
 
 	parkSenseService := services.NewParkSenseServiceImpl()

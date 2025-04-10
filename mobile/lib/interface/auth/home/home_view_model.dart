@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:mobile/core/helpers/form/form_view_model.dart';
 import 'package:mobile/core/helpers/nav_manager.dart';
 import 'package:mobile/core/providers/park_sense_provider.dart';

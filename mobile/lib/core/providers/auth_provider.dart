@@ -5,6 +5,8 @@ abstract class AuthProvider {
   Future register(String licensePlate);
   Future logout();
 
+  Future<String> getAccessToken();
+
   bool get isAuthenticated;
   Future<bool> get canAuthenticate;
   AppUser get getMetadata;

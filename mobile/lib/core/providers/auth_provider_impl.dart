@@ -75,4 +75,12 @@ final class AuthProviderImpl extends ViewModel implements AuthProvider {
     _identityUser = null;
     notifyListeners();
   }
+
+  @override
+  Future<String> getAccessToken() async {
+    var token = await _secretManager.get<Token>(Token.accessToken);
+    throwIf(token == null, NotAuthenticatedError());
+
+    return token!.getValue();
+  }
 }

@@ -1,6 +1,11 @@
 import 'package:get_it/get_it.dart';
 import 'package:grpc/grpc.dart';
 import 'package:mobile/core/helpers/api_client.dart';
+import 'package:mobile/core/helpers/secret_manager/secret_manager.dart';
+import 'package:mobile/core/helpers/secret_manager/secret_manager_impl.dart';
+import 'package:mobile/core/models/token.dart';
+import 'package:mobile/core/providers/auth_provider.dart';
+import 'package:mobile/core/providers/auth_provider_impl.dart';
 import 'package:mobile/dependency_injection.dart';
 import 'package:mobile/services/auth/auth_service.dart';
 import 'package:mobile/services/auth/auth_service_impl.dart';
@@ -26,8 +31,19 @@ extension ServiceInjection on DependencyInjection {
     _addGrpcClients(locator);
 
     locator.registerFactory<AuthService>(() => AuthServiceImpl(apiClient));
+
+    var secretManager = locator.registerSingleton<SecretManager>(
+      SecretManagerImpl((converters) {
+        return converters.register(TokenConverter());
+      }),
+    );
+
+    var authProvider = locator.registerSingleton<AuthProvider>(
+      AuthProviderImpl(locator<AuthService>(), secretManager),
+    );
+
     locator.registerFactory<ParkSenseService>(
-      () => ParkSenseServiceImpl(apiClient),
+      () => ParkSenseServiceImpl(apiClient, authProvider),
     );
   }
 }

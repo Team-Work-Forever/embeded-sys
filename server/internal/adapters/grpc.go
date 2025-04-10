@@ -21,13 +21,19 @@ const (
 	TimeOut           = 20 * time.Second
 )
 
-func NewRPCServer() (*GRPCServer, error) {
-	return &GRPCServer{
-		instance: grpc.NewServer(grpc.KeepaliveParams(keepalive.ServerParameters{
+func NewRPCServer(options ...grpc.ServerOption) (*GRPCServer, error) {
+	opts := []grpc.ServerOption{
+		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: MaxConnectionIdle,
 			Time:              Time,
 			Timeout:           TimeOut,
-		})),
+		}),
+	}
+
+	opts = append(opts, options...)
+
+	return &GRPCServer{
+		instance: grpc.NewServer(opts...),
 	}, nil
 }
 
