@@ -8,6 +8,7 @@ import (
 	"server/config"
 	"server/internal"
 	"server/internal/adapters"
+	"server/internal/domain"
 	"server/internal/middlewares"
 	"server/internal/repositories"
 	"server/internal/services"
@@ -39,6 +40,9 @@ func main() {
 	redis := adapters.GetRedis()
 	defer redis.Close()
 
+	// Init global state of the application
+	globalState := domain.NewDeviceManager()
+
 	// rpc server
 	tokenHelper := helpers.NewTokenService(redis)
 	authStreamInterceptor := middlewares.NewAuthMiddleware(tokenHelper)
@@ -55,7 +59,7 @@ func main() {
 
 	// http server
 	// Start an http server (alpine.js, htmx)
-	httpServer := adapters.NewHttpServer()
+	httpServer := adapters.NewHttpServer(globalState)
 	defer httpServer.Close()
 
 	endpoints, err := internal.NewEndpoints()
@@ -65,7 +69,7 @@ func main() {
 	}
 
 	// bluetooth client
-	bluetoothServer := adapters.NewBluetoothServer()
+	bluetoothServer := adapters.NewBluetoothServer(globalState)
 
 	// repositories
 	authRepository := repositories.NewAuthRepository(db)
@@ -73,7 +77,7 @@ func main() {
 	// service registration
 	authService := services.NewAuthServiceImpl(authRepository, tokenHelper)
 
-	parkSenseService := services.NewParkSenseServiceImpl()
+	parkSenseService := services.NewParkSenseServiceImpl(globalState)
 
 	// start service
 	grpcServer.RegisterServices([]pkg.Controller{
@@ -84,7 +88,7 @@ func main() {
 	// start shared services
 	go startHttpServer(httpServer, endpoints, env.HTTP_SERVER_PORT)
 	go startGRPCServer(grpcServer, env.GRPC_SERVER_PORT)
-	go startBluetooth(bluetoothServer, parkSenseService)
+	go startBluetooth(bluetoothServer)
 
 	utils.DrawRectangle([]utils.Entry{
 		&utils.CenterBlock{BlockItem: utils.BlockItem{Value: "Raspberry Pi & Arduino", Color: utils.Red}},
@@ -137,8 +141,8 @@ func generateJWKS() error {
 	return nil
 }
 
-func startBluetooth(bluetoothServer *adapters.BluetoothServer, parkService *services.ParkSenseServiceImpl) {
-	if err := bluetoothServer.Serve(parkService.RegisterModule); err != nil {
+func startBluetooth(bluetoothServer *adapters.BluetoothServer) {
+	if err := bluetoothServer.Serve(); err != nil {
 		log.Fatal(err)
 	}
 }

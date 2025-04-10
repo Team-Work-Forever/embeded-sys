@@ -4,7 +4,6 @@ import (
 	"log"
 	"server/internal/domain"
 	"server/internal/services/proto"
-	"sync"
 
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -15,13 +14,14 @@ type (
 	ParkSenseServiceImpl struct {
 		proto.UnimplementedParkSenseServiceServer
 
-		parkLots []chan *proto.ParkSet
-		mu       sync.Mutex
+		deviceStore domain.DeviceStore
 	}
 )
 
-func NewParkSenseServiceImpl() *ParkSenseServiceImpl {
-	return &ParkSenseServiceImpl{}
+func NewParkSenseServiceImpl(deviceStore domain.DeviceStore) *ParkSenseServiceImpl {
+	return &ParkSenseServiceImpl{
+		deviceStore: deviceStore,
+	}
 }
 
 func (s *ParkSenseServiceImpl) RegisterControllers(server *grpc.Server) {
@@ -47,40 +47,13 @@ func mapToProtoParkSet(parkSet *domain.ParkSet) *proto.ParkSet {
 	}
 }
 
-func (park *ParkSenseServiceImpl) RegisterModule(parkSet *domain.ParkSet) {
-	park.mu.Lock()
-	defer park.mu.Unlock()
-
-	for _, ch := range park.parkLots {
-		ch <- mapToProtoParkSet(parkSet)
-	}
-}
-
 func (park *ParkSenseServiceImpl) StreamIncomingParkLot(request *emptypb.Empty, stream grpc.ServerStreamingServer[proto.ParkSet]) error {
-	ch := make(chan *proto.ParkSet, 1)
-
-	park.mu.Lock()
-	park.parkLots = append(park.parkLots, ch)
-	park.mu.Unlock()
+	ch, unsubscrive := park.deviceStore.Subscrive()
+	defer unsubscrive()
 
 	log.Println("Stream started")
 
 	ctx := stream.Context()
-
-	defer func() {
-		log.Println("Cleaning up stream...")
-
-		park.mu.Lock()
-		var updated []chan *proto.ParkSet
-		for _, c := range park.parkLots {
-			if c != ch {
-				updated = append(updated, c)
-			}
-		}
-
-		park.parkLots = updated
-		park.mu.Unlock()
-	}()
 
 	for {
 		select {
@@ -88,10 +61,15 @@ func (park *ParkSenseServiceImpl) StreamIncomingParkLot(request *emptypb.Empty, 
 			err := ctx.Err()
 			log.Println("Client disconnected:", err)
 			return err
-		case update := <-ch:
-			log.Println("Send new stuff")
 
-			if err := stream.Send(update); err != nil {
+		case device, ok := <-ch:
+			if !ok {
+				log.Println("Channel closed")
+				return nil
+			}
+
+			log.Println("Send new stuff")
+			if err := stream.Send(mapToProtoParkSet(device)); err != nil {
 				log.Printf("Error sending update to client: %v", err)
 				return err
 			}

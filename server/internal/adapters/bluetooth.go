@@ -9,19 +9,22 @@ import (
 
 type (
 	BluetoothServer struct {
+		deviceStore domain.DeviceStore
 	}
 )
 
-func NewBluetoothServer() *BluetoothServer {
-	return &BluetoothServer{}
+func NewBluetoothServer(deviceStore domain.DeviceStore) *BluetoothServer {
+	return &BluetoothServer{
+		deviceStore: deviceStore,
+	}
 }
 
-func (blue *BluetoothServer) Serve(updateFun func(*domain.ParkSet)) error {
+func (blue *BluetoothServer) Serve() error {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
-		updateFun(&domain.ParkSet{
+		blue.deviceStore.AddDevice(&domain.ParkSet{
 			Id: uuid.NewString(),
 			Lots: []domain.ParkLot{
 				{

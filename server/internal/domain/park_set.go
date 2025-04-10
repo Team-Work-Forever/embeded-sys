@@ -22,9 +22,9 @@ type (
 	}
 
 	ParkSet struct {
-		Id        string
+		Id        string // MAC
 		Lots      []ParkLot
 		State     ParkState
-		Timestamp time.Time
+		Timestamp time.Time // On Connect
 	}
 )

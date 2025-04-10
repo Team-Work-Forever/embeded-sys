@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"server/internal"
+	"server/internal/domain"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -16,12 +17,15 @@ const STATIC_PATH = "./static"
 type HttpServer struct {
 	instance *http.Server
 	router   *mux.Router
+
+	deviceStore domain.DeviceStore
 }
 
-func NewHttpServer() *HttpServer {
+func NewHttpServer(deviceStore domain.DeviceStore) *HttpServer {
 	router := mux.NewRouter()
 
 	return &HttpServer{
+		deviceStore: deviceStore,
 		instance: &http.Server{
 			Handler:        router,
 			ReadTimeout:    10 * time.Second,
