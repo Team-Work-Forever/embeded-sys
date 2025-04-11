@@ -142,7 +142,7 @@ func (as *AuthServiceImpl) RefreshTokens(context context.Context, request *proto
 	})
 
 	if err != nil {
-		return nil, status.Error(codes.Canceled, "An error occorred while generating access keys, please try again later... ")
+		return nil, status.Error(codes.Canceled, "An error occurred while generating access keys, please try again later... ")
 	}
 
 	return &proto.AuthResponse{
