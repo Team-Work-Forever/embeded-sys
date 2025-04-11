@@ -15,6 +15,7 @@ type (
 
 		ExistsLicensePlate(plate string) bool
 		GetByLicense(plate string) (*domain.IdentityUser, error)
+		GetByPublicId(publicId string) (*domain.IdentityUser, error)
 	}
 )
 
@@ -32,6 +33,16 @@ func (ar *AuthRepository) GetByLicense(plate string) (*domain.IdentityUser, erro
 	var identityUser *domain.IdentityUser
 
 	if err := ar.Context.Statement.Where("license_plate = ?", plate).First(&identityUser).Error; err != nil {
+		return nil, err
+	}
+
+	return identityUser, nil
+}
+
+func (ar *AuthRepository) GetByPublicId(publicKey string) (*domain.IdentityUser, error) {
+	var identityUser *domain.IdentityUser
+
+	if err := ar.Context.Statement.Where("public_id = ?", publicKey).First(&identityUser).Error; err != nil {
 		return nil, err
 	}
 

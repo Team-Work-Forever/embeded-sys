@@ -1,6 +1,7 @@
 import 'package:mobile/core/models/user.dart';
 
 abstract class AuthProvider {
+  Future checkAuth();
   Future login(String licensePlate);
   Future register(String licensePlate);
   Future logout();

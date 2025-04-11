@@ -17,4 +17,11 @@ final class AuthServiceImpl extends BaseService<AuthServiceClient>
   Future<RegisterResponse> register(String licensePlate) async {
     return await client.register(RegisterEntryRequest(carPlate: licensePlate));
   }
+
+  @override
+  Future<AuthResponse> refreshTokens(String refreshToken) async {
+    return await client.refreshTokens(
+      RefreshtTokensRequest(refreshToken: refreshToken),
+    );
+  }
 }
