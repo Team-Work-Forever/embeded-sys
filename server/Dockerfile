@@ -36,6 +36,7 @@ RUN mkdir -p /app/www && chown -R appuser:appuser /app && chmod -R 755 /app
 USER appuser
 
 COPY --from=build /bin/server /app/
+COPY --from=build /src/static /app/static
 
 WORKDIR /app
 
