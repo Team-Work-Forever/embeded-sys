@@ -5,17 +5,24 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"server/internal/domain"
 	"server/pkg/helpers"
 	"server/templates"
 
 	"github.com/gorilla/mux"
 )
 
-type Endpoints struct {
-	tmpl *template.Template
+type Dummy struct {
+	Id string
 }
 
-func NewEndpoints() (*Endpoints, error) {
+type Endpoints struct {
+	tmpl *template.Template
+
+	deviceStorage domain.DeviceStore
+}
+
+func NewEndpoints(deviceStorage domain.DeviceStore) (*Endpoints, error) {
 	tmpl, err := template.ParseFS(templates.FileStream, "*.html")
 
 	if err != nil {
@@ -23,12 +30,15 @@ func NewEndpoints() (*Endpoints, error) {
 	}
 
 	return &Endpoints{
-		tmpl: tmpl,
+		tmpl:          tmpl,
+		deviceStorage: deviceStorage,
 	}, nil
 }
 
 func (e *Endpoints) RegisterEndpoints(router *mux.Router) {
 	router.HandleFunc("/", e.index)
+	router.HandleFunc("/devices", e.getDevices)
+
 	router.HandleFunc("/.well-known/jwks.json", e.jwks)
 }
 
@@ -47,4 +57,12 @@ func (e *Endpoints) jwks(w http.ResponseWriter, _ *http.Request) {
 
 func (e *Endpoints) index(w http.ResponseWriter, r *http.Request) {
 	e.tmpl.ExecuteTemplate(w, "index.html", nil)
+}
+
+func (e *Endpoints) getDevices(w http.ResponseWriter, r *http.Request) {
+	data := map[string][]*domain.ParkSet{
+		"Modules": e.deviceStorage.GetDevices(),
+	}
+
+	e.tmpl.ExecuteTemplate(w, "devices.html", data)
 }

@@ -1,3 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+  --background-color: #fff;
+  --side-bar-color: #d2d2d2;
+}
+
 * {
-  background: #fff;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  font-family: 'Bitter', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+}
+
+.app-container {
+  display: grid;
+  grid-template-columns: minmax(50%, 1fr) minmax(350px, 25%);
+  height: 100vh;
+}
+
+.matrix-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--background-color);
+}
+
+.side-bar {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: var(--side-bar-color);
+}
+
+.arduino-module {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  border-radius: 7px;
+  background-color: #f0f0f0;
+}
+
+.overflow-bubble {
+  background: #444;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 9999px;
+  text-align: center;
+  font-size: 0.9rem;
 }

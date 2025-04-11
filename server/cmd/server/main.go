@@ -59,10 +59,10 @@ func main() {
 
 	// http server
 	// Start an http server (alpine.js, htmx)
-	httpServer := adapters.NewHttpServer(globalState)
+	httpServer := adapters.NewHttpServer()
 	defer httpServer.Close()
 
-	endpoints, err := internal.NewEndpoints()
+	endpoints, err := internal.NewEndpoints(globalState)
 
 	if err != nil {
 		panic(err)
