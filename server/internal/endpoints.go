@@ -37,7 +37,7 @@ func NewEndpoints(deviceStorage domain.DeviceStore) (*Endpoints, error) {
 
 func (e *Endpoints) RegisterEndpoints(router *mux.Router) {
 	router.HandleFunc("/", e.index).Methods("GET")
-	router.HandleFunc("/ping", e.index)
+	router.HandleFunc("/ping", e.Ping)
 	router.HandleFunc("/devices", e.getDevices)
 
 	router.HandleFunc("/.well-known/jwks.json", e.jwks)
