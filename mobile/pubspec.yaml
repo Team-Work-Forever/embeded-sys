@@ -10,6 +10,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Language
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+  shared_preferences: ^2.2.2
+  rxdart: ^0.28.0
+
   flutter_dotenv: ^5.2.1
   jwt_decoder: ^2.0.1
   flutter_secure_storage: ^9.2.4
