@@ -133,7 +133,7 @@ func (as *AuthServiceImpl) RefreshTokens(context context.Context, request *proto
 	foundIdentityUser, err := as.authRepo.GetByPublicId(claims.Subject)
 
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "User doesn't exists")
+		return nil, status.Error(codes.NotFound, "User doesn't exist")
 	}
 
 	accessToken, refreshToken, err := as.tokenHelper.CreateAuthenticationTokens(helpers.TokenPayload{
