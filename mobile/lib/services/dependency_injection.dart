@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:grpc/grpc.dart';
 import 'package:mobile/core/helpers/api_client.dart';
+import 'package:mobile/core/helpers/network_helper.dart';
 import 'package:mobile/core/helpers/secret_manager/secret_manager.dart';
 import 'package:mobile/core/helpers/secret_manager/secret_manager_impl.dart';
 import 'package:mobile/core/models/token.dart';
@@ -31,6 +32,8 @@ extension ServiceInjection on DependencyInjection {
     _addGrpcClients(locator);
 
     locator.registerFactory<AuthService>(() => AuthServiceImpl(apiClient));
+
+    locator.registerSingleton(NetWorkHelper());
 
     var secretManager = locator.registerSingleton<SecretManager>(
       SecretManagerImpl((converters) {

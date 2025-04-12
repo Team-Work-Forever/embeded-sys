@@ -129,6 +129,56 @@ class LoginEntryRequest extends $pb.GeneratedMessage {
   void clearMAC() => $_clearField(2);
 }
 
+class RefreshtTokensRequest extends $pb.GeneratedMessage {
+  factory RefreshtTokensRequest({
+    $core.String? refreshToken,
+  }) {
+    final $result = create();
+    if (refreshToken != null) {
+      $result.refreshToken = refreshToken;
+    }
+    return $result;
+  }
+  RefreshtTokensRequest._() : super();
+  factory RefreshtTokensRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory RefreshtTokensRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'RefreshtTokensRequest', package: const $pb.PackageName(_omitMessageNames ? '' : 'auth'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'refreshToken', protoName: 'refreshToken')
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  RefreshtTokensRequest clone() => RefreshtTokensRequest()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  RefreshtTokensRequest copyWith(void Function(RefreshtTokensRequest) updates) => super.copyWith((message) => updates(message as RefreshtTokensRequest)) as RefreshtTokensRequest;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static RefreshtTokensRequest create() => RefreshtTokensRequest._();
+  RefreshtTokensRequest createEmptyInstance() => create();
+  static $pb.PbList<RefreshtTokensRequest> createRepeated() => $pb.PbList<RefreshtTokensRequest>();
+  @$core.pragma('dart2js:noInline')
+  static RefreshtTokensRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<RefreshtTokensRequest>(create);
+  static RefreshtTokensRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get refreshToken => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set refreshToken($core.String v) { $_setString(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasRefreshToken() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRefreshToken() => $_clearField(1);
+}
+
 class RegisterResponse extends $pb.GeneratedMessage {
   factory RegisterResponse({
     $core.String? accessToken,

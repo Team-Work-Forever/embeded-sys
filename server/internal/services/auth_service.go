@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log"
 	"regexp"
 	"server/internal/domain"
 	"server/internal/repositories"
@@ -108,6 +109,40 @@ func (as *AuthServiceImpl) Login(context context.Context, request *proto.LoginEn
 
 	if err != nil {
 		return nil, status.Error(codes.Canceled, "An error occorred while generating access keys, please try again later... ")
+	}
+
+	return &proto.AuthResponse{
+		AccessToken:  accessToken.Token,
+		RefreshToken: refreshToken.Token,
+	}, nil
+}
+
+func (as *AuthServiceImpl) RefreshTokens(context context.Context, request *proto.RefreshtTokensRequest) (*proto.AuthResponse, error) {
+	claims := &helpers.AuthClaims{}
+
+	if err := helpers.GetClaims(request.RefreshToken, claims); err != nil {
+		log.Printf("Error while getting claims: %s\n", err.Error())
+		return nil, status.Error(codes.Aborted, "Invalid token")
+	}
+
+	if err := as.tokenHelper.ValidateToken(claims.Subject, request.RefreshToken, helpers.RefreshTokenKey); err != nil {
+		log.Println("Error validating token")
+		return nil, status.Error(codes.Aborted, "Invalid token")
+	}
+
+	foundIdentityUser, err := as.authRepo.GetByPublicId(claims.Subject)
+
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "User doesn't exist")
+	}
+
+	accessToken, refreshToken, err := as.tokenHelper.CreateAuthenticationTokens(helpers.TokenPayload{
+		Id:           foundIdentityUser.PublicId,
+		LicensePlate: foundIdentityUser.LicensePlate,
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Canceled, "An error occurred while generating access keys, please try again later... ")
 	}
 
 	return &proto.AuthResponse{

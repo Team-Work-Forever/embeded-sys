@@ -24,6 +24,7 @@ dependencies:
   flutter_native_splash: ^2.3.7
   flutter_launcher_icons: ^0.13.1
 
+  connectivity_plus: ^6.1.3
   grpc: ^4.0.4
   go_router: ^14.8.1
   get_it: ^8.0.3

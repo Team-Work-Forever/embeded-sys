@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:get_it/get_it.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:mobile/core/errors/failed_to_authenticate.dart';
@@ -21,8 +22,9 @@ final class AuthProviderImpl extends ViewModel implements AuthProvider {
   get isAuthenticated => _identityUser != null;
 
   @override
-  Future<bool> get canAuthenticate async =>
-      (await _secretManager.get<Token>(Token.refreshToken)) != null;
+  Future<bool> get canAuthenticate async {
+    return (await _secretManager.get<Token>(Token.refreshToken)) != null;
+  }
 
   @override
   get getMetadata =>
@@ -82,5 +84,34 @@ final class AuthProviderImpl extends ViewModel implements AuthProvider {
     throwIf(token == null, NotAuthenticatedError());
 
     return token!.getValue();
+  }
+
+  @override
+  Future checkAuth() async {
+    try {
+      var fetchRefreshToken = await _secretManager.get<Token>(
+        Token.refreshToken,
+      );
+      throwIf(fetchRefreshToken == null, NotAuthenticatedError());
+
+      throwIf(
+        JwtDecoder.isExpired(fetchRefreshToken!.getValue()),
+        NotAuthenticatedError(),
+      );
+
+      var tokens = await _authService.refreshTokens(
+        fetchRefreshToken.getValue(),
+      );
+
+      throwIfNot(
+        await authenticate(tokens.accessToken, tokens.refreshToken),
+        FailedToAuthenticateError(),
+      );
+    } catch (e) {
+      debugPrint("Error failed to fetch new tokens for authentication");
+      logout();
+
+      rethrow;
+    }
   }
 }

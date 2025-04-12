@@ -39,6 +39,19 @@ final $typed_data.Uint8List loginEntryRequestDescriptor = $convert.base64Decode(
     'ChFMb2dpbkVudHJ5UmVxdWVzdBIaCghjYXJQbGF0ZRgBIAEoCVIIY2FyUGxhdGUSEAoDTUFDGA'
     'IgASgJUgNNQUM=');
 
+@$core.Deprecated('Use refreshtTokensRequestDescriptor instead')
+const RefreshtTokensRequest$json = {
+  '1': 'RefreshtTokensRequest',
+  '2': [
+    {'1': 'refreshToken', '3': 1, '4': 1, '5': 9, '10': 'refreshToken'},
+  ],
+};
+
+/// Descriptor for `RefreshtTokensRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List refreshtTokensRequestDescriptor = $convert.base64Decode(
+    'ChVSZWZyZXNodFRva2Vuc1JlcXVlc3QSIgoMcmVmcmVzaFRva2VuGAEgASgJUgxyZWZyZXNoVG'
+    '9rZW4=');
+
 @$core.Deprecated('Use registerResponseDescriptor instead')
 const RegisterResponse$json = {
   '1': 'RegisterResponse',
