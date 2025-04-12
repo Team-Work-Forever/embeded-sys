@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:mobile/core/locales/locale_context.dart';
 import 'package:mobile/core/navigation/app_route.dart';
 import 'package:mobile/core/navigation/application_navigation.dart';
 import 'package:mobile/core/navigation/navigation_guard.dart';
@@ -13,6 +14,7 @@ final class ApplicationRouter<TView extends LinearView> {
   final ApplicationNavigation router = NavigationGuard(
     route: AppRoute.root,
     view: (context, state) {
+      LocaleContext.setContext(context);
       return LinearView.of<TView>();
     },
     routes: [],
