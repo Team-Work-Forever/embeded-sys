@@ -264,7 +264,7 @@ const file_parksense_proto_rawDesc = "" +
 	"\x06NORMAL\x10\x00\x12\b\n" +
 	"\x04FIRE\x10\x012Y\n" +
 	"\x10ParkSenseService\x12E\n" +
-	"\x15StreamIncomingParkLot\x12\x16.google.protobuf.Empty\x1a\x12.parksense.ParkSet0\x01B\"Z ./server/internal/services/protob\x06proto3"
+	"\x15StreamIncomingParkLot\x12\x16.google.protobuf.Empty\x1a\x12.parksense.ParkSet0\x01B\x1bZ\x19./internal/services/protob\x06proto3"
 
 var (
 	file_parksense_proto_rawDescOnce sync.Once
