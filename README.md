@@ -14,7 +14,7 @@ Tools:
   install-tools                 - Download and install proto related tools
 
 Actions:
-  gen-flutter                   - generate proto files for the mobile application
-  gen-go                        - generate proto files for the server application
+  serve-server                  - serve server locally with docker
+  take-server                   - take down server locally with docker
+  gen-proto                     - generate proto files on both server and mobile
 ```
-

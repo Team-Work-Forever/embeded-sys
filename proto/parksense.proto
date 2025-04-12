@@ -5,7 +5,7 @@ package parksense;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-option go_package = "./server/internal/services/proto";
+option go_package = "./internal/services/proto";
 
 service ParkSenseService {
   rpc StreamIncomingParkLot (google.protobuf.Empty) returns (stream ParkSet);

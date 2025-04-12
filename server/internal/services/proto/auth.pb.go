@@ -296,7 +296,7 @@ const file_auth_proto_rawDesc = "" +
 	"\vAuthService\x12>\n" +
 	"\bRegister\x12\x1a.auth.RegisterEntryRequest\x1a\x16.auth.RegisterResponse\x124\n" +
 	"\x05Login\x12\x17.auth.LoginEntryRequest\x1a\x12.auth.AuthResponse\x12@\n" +
-	"\rRefreshTokens\x12\x1b.auth.RefreshtTokensRequest\x1a\x12.auth.AuthResponseB\"Z ./server/internal/services/protob\x06proto3"
+	"\rRefreshTokens\x12\x1b.auth.RefreshtTokensRequest\x1a\x12.auth.AuthResponseB\x1bZ\x19./internal/services/protob\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once
