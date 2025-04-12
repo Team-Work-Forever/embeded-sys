@@ -36,7 +36,8 @@ func NewEndpoints(deviceStorage domain.DeviceStore) (*Endpoints, error) {
 }
 
 func (e *Endpoints) RegisterEndpoints(router *mux.Router) {
-	router.HandleFunc("/", e.index)
+	router.HandleFunc("/", e.index).Methods("GET")
+	router.HandleFunc("/ping", e.Ping)
 	router.HandleFunc("/devices", e.getDevices)
 
 	router.HandleFunc("/.well-known/jwks.json", e.jwks)
@@ -53,6 +54,11 @@ func (e *Endpoints) jwks(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(jwks)
+}
+
+func (e *Endpoints) Ping(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("pong"))
 }
 
 func (e *Endpoints) index(w http.ResponseWriter, r *http.Request) {
