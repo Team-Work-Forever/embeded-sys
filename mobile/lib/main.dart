@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/core/config/global.dart';
 import 'package:mobile/core/helpers/network_helper.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
 import 'package:mobile/core/providers/language_provider.dart';
@@ -98,7 +99,10 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
       initialData: const Locale('en'),
       builder: (context, localeSnapshot) {
         return MaterialApp.router(
-          theme: ThemeData(fontFamily: 'Lato'),
+          theme: ThemeData(
+            fontFamily: 'Lato',
+            scaffoldBackgroundColor: AppColor.widgetBackground,
+          ),
           debugShowCheckedModeBanner: false,
           routerConfig: widget.appRouter,
           locale: localeSnapshot.data,

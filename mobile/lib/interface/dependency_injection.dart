@@ -21,7 +21,7 @@ extension InterfaceInjection on DependencyInjection {
     it.registerFactory(() => LoginViewModel(authProvider, navManager));
 
     it.registerLazySingleton(
-      () => HomeViewModel(parkSenseProvider, navManager),
+      () => HomeViewModel(parkSenseProvider, authProvider, navManager),
       dispose: (homeViewModel) => homeViewModel.dispose(),
     );
   }

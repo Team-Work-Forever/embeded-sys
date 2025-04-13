@@ -3,5 +3,19 @@
   "language_pt": "Português",
   "@language_pt": {},
   "language_en": "Inglês",
-  "@language_en": {}
+  "@language_en": {},
+  "auth_login_license_plate": "Matrícula",
+  "@auth_login_license_plate": {},
+  "auth_login_licensePlate_empty": "Por favor insira a matrícula!",
+  "@auth_login_licensePlate_empty": {},
+  "auth_login_invalid_license_plate": "Por favor insira uma matrícula válida!",
+  "@auth_login_invalid_license_plate": {},
+  "auth_login_welcome": "Bem-vindo ao Park Sense",
+  "@auth_login_welcome": {},
+  "auth_login_log_in_with_license_plate": "Por favor insira a matrícula em baixo para entrar",
+  "@auth_login_log_in_with_license_plate": {},
+  "auth_login_log_in": "Entrar",
+  "@auth_login_log_in": {},
+  "core_widgets_buttons_formatted_button_loading": "Carregando...",
+  "@core_widgets_buttons_formatted_button_loading": {}
 }

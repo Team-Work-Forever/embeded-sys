@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/view.dart';
+import 'package:mobile/core/widgets/headers/home_header.dart';
 import 'package:mobile/interface/auth/home/home_view_model.dart';
 
 final class HomeView extends LinearView<HomeViewModel> {
@@ -9,6 +10,12 @@ final class HomeView extends LinearView<HomeViewModel> {
   Widget build(BuildContext context, HomeViewModel viewModel) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      appBar: HomeHeader(
+        profile: () => (),
+        icon: () => (),
+        licensePlate: viewModel.licensePlate,
+        hasShadow: false,
+      ),
       body: Center(
         child: Column(
           children: [

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/config/fonts.dart';
 
-class AppColor {
+final class AppColor {
   // Widget Colors
   static const Color widgetBackground = Color.fromRGBO(246, 249, 252, 1);
   static const Color widgetBackgroundBlurry = Color.fromRGBO(246, 249, 252, 66);
@@ -34,24 +34,26 @@ class AppColor {
 
   static const Color primaryInfo = Color.fromRGBO(0, 161, 223, 1);
   static const Color info = Color.fromRGBO(0, 113, 255, 1);
+}
 
+final class AppBoxDecoration {
+  static const Radius radius5 = Radius.circular(5);
+  static const Radius radius7 = Radius.circular(7);
+  static const Radius radius10 = Radius.circular(10);
   // BorderRadius
-  static const BorderRadius borderRadius5 = BorderRadius.all(
-    Radius.circular(5),
-  );
-  static const BorderRadius borderRadius10 = BorderRadius.all(
-    Radius.circular(10),
-  );
+  static const BorderRadius borderRadius5 = BorderRadius.all(radius5);
+  static const BorderRadius borderRadius7 = BorderRadius.all(radius7);
+  static const BorderRadius borderRadius10 = BorderRadius.all(radius10);
 
   static const BoxShadow defaultShadow = BoxShadow(
-    color: shadowColor,
+    color: AppColor.shadowColor,
     blurRadius: 10,
     spreadRadius: 0.0,
   );
 }
 
 // Text Sizes
-class TextSizes {
+final class TextSizes {
   static const double title1 = 32;
   static const double title2 = 24;
   static const double title3 = 20;
@@ -62,7 +64,7 @@ class TextSizes {
   static const double title8 = 8;
 }
 
-class AppText {
+final class AppText {
   static TextStyle customStyle({
     Color color = AppColor.secondaryColor,
     double fontSize = TextSizes.title3,
