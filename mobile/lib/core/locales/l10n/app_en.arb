@@ -16,6 +16,8 @@
   "@auth_login_log_in_with_license_plate": {},
   "auth_login_log_in": "Enter",
   "@auth_login_log_in": {},
+  "auth_home_section": "Section",
+  "@auth_home_section": {},
   "core_widgets_buttons_formatted_button_loading": "Loading...",
   "@core_widgets_buttons_formatted_button_loading": {}
 }

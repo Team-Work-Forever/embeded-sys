@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/core/widgets/base/base_card.dart';
+import 'package:mobile/core/widgets/base/base_card_builder.dart';
 
 abstract class Header extends StatelessWidget implements PreferredSizeWidget {
   final double height;
@@ -26,16 +26,18 @@ abstract class Header extends StatelessWidget implements PreferredSizeWidget {
       child: AppBar(
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
-        flexibleSpace: BaseCard.custom(
-          width: double.infinity,
-          height: height,
-          topPadding: topPadding,
-          bottomPadding: bottomPadding,
-          leftPadding: paddingHorizontal,
-          rightPadding: paddingHorizontal,
-          hasShadow: hasShadow,
-          body: body(context),
-        ),
+        flexibleSpace:
+            BaseCardBuilder()
+                .setSize(double.infinity, height)
+                .setPadding(
+                  topPadding,
+                  bottomPadding,
+                  paddingHorizontal,
+                  paddingHorizontal,
+                )
+                .setBody(body(context))
+                .hasNotShadow(hasShadow: hasShadow)
+                .build(),
       ),
     );
   }

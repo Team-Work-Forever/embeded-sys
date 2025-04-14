@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/config/global.dart';
 import 'package:mobile/core/helpers/network_helper.dart';
+import 'package:mobile/core/monitor_cope.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
 import 'package:mobile/core/providers/language_provider.dart';
 import 'package:mobile/core/providers/park_sense_provider.dart';
@@ -34,25 +35,29 @@ void main() async {
   }
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create:
-              (context) =>
-                  DependencyInjection.locator<AuthProvider>() as ViewModel,
-        ),
-        ChangeNotifierProvider(
-          create:
-              (context) =>
-                  DependencyInjection.locator<ParkSenseProvider>() as ViewModel,
-        ),
-        ChangeNotifierProvider(
-          create:
-              (context) =>
-                  DependencyInjection.locator<LanguageProvider>() as ViewModel,
-        ),
-      ],
-      child: MainApp(appRouter: app.navigationManager.router),
+    MonitorScope(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create:
+                (context) =>
+                    DependencyInjection.locator<AuthProvider>() as ViewModel,
+          ),
+          ChangeNotifierProvider(
+            create:
+                (context) =>
+                    DependencyInjection.locator<ParkSenseProvider>()
+                        as ViewModel,
+          ),
+          ChangeNotifierProvider(
+            create:
+                (context) =>
+                    DependencyInjection.locator<LanguageProvider>()
+                        as ViewModel,
+          ),
+        ],
+        child: MainApp(appRouter: app.navigationManager.router),
+      ),
     ),
   );
 }

@@ -12,6 +12,7 @@ class BaseCard extends StatelessWidget {
   final double leftPadding;
   final double rightPadding;
   final bool hasShadow;
+  final bool isCircular;
 
   const BaseCard.custom({
     super.key,
@@ -25,6 +26,7 @@ class BaseCard extends StatelessWidget {
     this.leftPadding = 0,
     this.rightPadding = 0,
     this.hasShadow = true,
+    this.isCircular = false,
   });
 
   const BaseCard.zeroPadding({
@@ -35,6 +37,7 @@ class BaseCard extends StatelessWidget {
     Color color = AppColor.widgetBackground,
     BorderRadius borderRadius = AppBoxDecoration.borderRadius5,
     hasShadow = true,
+    isCircular = false,
   }) : this.custom(
          key: key,
          width: width,
@@ -42,6 +45,8 @@ class BaseCard extends StatelessWidget {
          body: body,
          color: color,
          borderRadius: borderRadius,
+         hasShadow: hasShadow,
+         isCircular: isCircular,
        );
 
   const BaseCard.symmetric({
@@ -54,6 +59,7 @@ class BaseCard extends StatelessWidget {
     Color color = AppColor.widgetBackground,
     BorderRadius borderRadius = AppBoxDecoration.borderRadius5,
     hasShadow = true,
+    isCircular = false,
   }) : this.custom(
          key: key,
          width: width,
@@ -65,6 +71,8 @@ class BaseCard extends StatelessWidget {
          bottomPadding: verticalPadding,
          leftPadding: horizontalPadding,
          rightPadding: horizontalPadding,
+         hasShadow: hasShadow,
+         isCircular: isCircular,
        );
 
   double get effectiveHorizontalPadding =>
@@ -89,8 +97,9 @@ class BaseCard extends StatelessWidget {
         right: rightPadding,
       ),
       decoration: BoxDecoration(
+        shape: isCircular ? BoxShape.circle : BoxShape.rectangle,
         color: color,
-        borderRadius: borderRadius,
+        borderRadius: isCircular ? null : borderRadius,
         boxShadow: hasShadow ? [AppBoxDecoration.defaultShadow] : [],
       ),
       child: SizedBox(

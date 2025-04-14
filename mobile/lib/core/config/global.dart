@@ -54,6 +54,8 @@ final class AppBoxDecoration {
 
 // Text Sizes
 final class TextSizes {
+  static const double title_64 = 64;
+  static const double title_48 = 48;
   static const double title1 = 32;
   static const double title2 = 24;
   static const double title3 = 20;
