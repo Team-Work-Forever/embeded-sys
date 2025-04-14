@@ -35,6 +35,8 @@ func mapToProtoParkSet(parkSet *domain.ParkSet) *proto.ParkSet {
 		entry := &proto.ParkLot{
 			ParkLotId: parkLot.Id,
 			State:     proto.LotState(parkLot.State),
+			Row:       parkLot.Row,
+			Column:    parkLot.Column,
 		}
 		parkLots = append(parkLots, entry)
 	}

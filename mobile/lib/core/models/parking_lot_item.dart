@@ -3,12 +3,14 @@ import 'dart:ui';
 import 'package:mobile/core/config/global.dart';
 
 class ParkingLotItem {
+  final String id;
   final bool myCar;
-  final ParkingLotStates state;
+  late ParkingLotStates state;
   final int row;
   final int column;
 
   ParkingLotItem({
+    required this.id,
     required this.myCar,
     required this.state,
     required this.row,
@@ -17,19 +19,27 @@ class ParkingLotItem {
 }
 
 enum ParkingLotStates implements Comparable<ParkingLotStates> {
-  free(value: "Free", color: AppColor.free),
-  occupied(value: "Occupied", color: AppColor.occupied),
-  reserved(value: "Reserved", color: AppColor.reserved),
-  emergency(value: "Emergency", color: AppColor.emergency),
-  notDefined(value: "NotDefined", color: AppColor.notDefined);
+  notDefined(id: 0, value: "NotDefined", color: AppColor.notDefined),
+  free(id: 1, value: "Free", color: AppColor.free),
+  occupied(id: 2, value: "Occupied", color: AppColor.occupied),
+  reserved(id: 3, value: "Reserved", color: AppColor.reserved),
+  emergency(id: 4, value: "Emergency", color: AppColor.emergency);
 
+  final int id;
   final String value;
   final Color color;
 
-  const ParkingLotStates({required this.value, required this.color});
+  const ParkingLotStates({
+    required this.id,
+    required this.value,
+    required this.color,
+  });
 
   static ParkingLotStates getOf(String value) =>
       ParkingLotStates.values.singleWhere((element) => element.value == value);
+
+  static ParkingLotStates getOfId(int value) =>
+      ParkingLotStates.values.singleWhere((element) => element.id == value);
 
   static List<String> getAllTypes() {
     return ParkingLotStates.values.map((e) => e.value).toList();

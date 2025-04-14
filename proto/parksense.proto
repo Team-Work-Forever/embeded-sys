@@ -26,6 +26,8 @@ enum ParkState {
 message ParkLot {
   string park_lot_id = 1;
   LotState state = 2;
+  uint32 row = 3;
+  uint32 column = 4;
 }
 
 message ParkSet {

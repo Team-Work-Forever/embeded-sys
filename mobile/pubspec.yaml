@@ -99,3 +99,4 @@ flutter:
     - .env
     - assets/icon.png
     - assets/icon.svg
+    - assets/alert.svg

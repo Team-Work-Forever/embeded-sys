@@ -7,7 +7,7 @@ import 'package:mobile/core/formatters/license_plate_formatter.dart';
 import 'package:mobile/core/helpers/form/form_field_values.dart';
 import 'package:mobile/core/locales/locale_context.dart';
 import 'package:mobile/core/view.dart';
-import 'package:mobile/core/widgets/buttons/formatted_button/formated_button.dart';
+import 'package:mobile/core/widgets/buttons/formatted_button/formatted_button.dart';
 import 'package:mobile/core/widgets/helpers/svg_image.dart';
 import 'package:mobile/core/widgets/helpers/svg_image_buider.dart';
 import 'package:mobile/core/widgets/inputs/formatted_text_field/default_formatted_text_field.dart';
@@ -64,31 +64,31 @@ final class LoginView extends LinearView<LoginViewModel> {
     );
   }
 
-  FormattedTextField _buildInputLicensePlate() {
-    return DefaultFormattedTextField(
-      hintText: LocaleContext.get().auth_login_license_plate,
-      inputFormatter: [LicensePlateFormatter()],
-      keyboardType: TextInputType.text,
-      initialValue: viewModel.getDefault(FormFieldValues.licensePlate),
-      onChange: (postalCode) => viewModel.setLicensePlate(postalCode),
-      errorMessage: viewModel.getValue(FormFieldValues.licensePlate).error,
-    );
-  }
-
-  FormattedButton _buildLogInButton(BuildContext context) {
-    return FormattedButton(
-      content: LocaleContext.get().auth_login_log_in,
-      onPress: () async => await viewModel.register(context),
-      textColor: AppColor.widgetBackground,
-      disabled: viewModel.thereAreErrors,
-    );
-  }
-
   @override
   Widget build(BuildContext context, LoginViewModel viewModel) {
     const double gap = 24;
     const double verticalPadding = 116;
     const double horizontalPadding = 16;
+
+    FormattedTextField buildInputLicensePlate() {
+      return DefaultFormattedTextField(
+        hintText: LocaleContext.get().auth_login_license_plate,
+        inputFormatter: [LicensePlateFormatter()],
+        keyboardType: TextInputType.text,
+        initialValue: viewModel.getDefault(FormFieldValues.licensePlate),
+        onChange: (postalCode) => viewModel.setLicensePlate(postalCode),
+        errorMessage: viewModel.getValue(FormFieldValues.licensePlate).error,
+      );
+    }
+
+    FormattedButton buildLogInButton(BuildContext context) {
+      return FormattedButton(
+        content: LocaleContext.get().auth_login_log_in,
+        onPress: () async => await viewModel.register(context),
+        textColor: AppColor.widgetBackground,
+        disabled: viewModel.thereAreErrors,
+      );
+    }
 
     return Scaffold(
       body: Center(
@@ -110,8 +110,8 @@ final class LoginView extends LinearView<LoginViewModel> {
                       _buildTextWelcome(context, horizontalPadding),
                     ],
                   ),
-                  _buildInputLicensePlate(),
-                  _buildLogInButton(context),
+                  buildInputLicensePlate(),
+                  buildLogInButton(context),
                 ],
               ),
             ),

@@ -48,13 +48,16 @@ const ParkLot$json = {
   '2': [
     {'1': 'park_lot_id', '3': 1, '4': 1, '5': 9, '10': 'parkLotId'},
     {'1': 'state', '3': 2, '4': 1, '5': 14, '6': '.parksense.LotState', '10': 'state'},
+    {'1': 'row', '3': 3, '4': 1, '5': 13, '10': 'row'},
+    {'1': 'column', '3': 4, '4': 1, '5': 13, '10': 'column'},
   ],
 };
 
 /// Descriptor for `ParkLot`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List parkLotDescriptor = $convert.base64Decode(
     'CgdQYXJrTG90Eh4KC3BhcmtfbG90X2lkGAEgASgJUglwYXJrTG90SWQSKQoFc3RhdGUYAiABKA'
-    '4yEy5wYXJrc2Vuc2UuTG90U3RhdGVSBXN0YXRl');
+    '4yEy5wYXJrc2Vuc2UuTG90U3RhdGVSBXN0YXRlEhAKA3JvdxgDIAEoDVIDcm93EhYKBmNvbHVt'
+    'bhgEIAEoDVIGY29sdW1u');
 
 @$core.Deprecated('Use parkSetDescriptor instead')
 const ParkSet$json = {

@@ -18,6 +18,12 @@
   "@auth_login_log_in": {},
   "auth_home_section": "Secção",
   "@auth_home_section": {},
+  "auth_home_section_in_emergency": "Secção em Emergência!",
+  "@auth_home_section_in_emergency": {},
+  "modal_cancel": "Cancelar",
+  "@modal_cancel": {},
+  "modal_confirm": "Confirmar",
+  "@modal_confirm": {},
   "core_widgets_buttons_formatted_button_loading": "Carregando...",
   "@core_widgets_buttons_formatted_button_loading": {}
 }
