@@ -78,8 +78,7 @@ final class HomeViewModel extends FormViewModel {
   }
 
   void goToSchedule() async {
-    // TODO: CHANGE ROUTE
-    // await _navigationManager.pushAsync(AuthRoutes.login);
+    await _navigationManager.pushAsync(ProtectedRoutes.schedule);
   }
 
   void goToProfile() async {

@@ -9,6 +9,8 @@ import 'package:mobile/interface/auth/home/home_view.dart';
 import 'package:mobile/interface/auth/home/home_view_model.dart';
 import 'package:mobile/interface/auth/profile/profile_view.dart';
 import 'package:mobile/interface/auth/profile/profile_view_model.dart';
+import 'package:mobile/interface/auth/schedule/schedule_view.dart';
+import 'package:mobile/interface/auth/schedule/schedule_view_model.dart';
 import 'package:mobile/interface/login/login_view.dart';
 import 'package:mobile/interface/login/login_view_model.dart';
 import 'package:mobile/interface/auth_routes.dart';
@@ -32,12 +34,17 @@ extension InterfaceInjection on DependencyInjection {
       () => ProfileViewModel(authProvider, languageProvider, navManager),
       dispose: (profileViewModel) => profileViewModel.dispose(),
     );
+    it.registerLazySingleton(
+      () => ScheduleViewModel(navManager),
+      dispose: (scheduleViewModel) => scheduleViewModel.dispose(),
+    );
   }
 
   _addViews(GetIt it) {
     it.registerFactory(() => LoginView(viewModel: it<LoginViewModel>()));
     it.registerFactory(() => HomeView(viewModel: it<HomeViewModel>()));
     it.registerFactory(() => ProfileView(viewModel: it<ProfileViewModel>()));
+    it.registerFactory(() => ScheduleView(viewModel: it<ScheduleViewModel>()));
   }
 
   void addInterface(ApplicationRouter appRouter) {

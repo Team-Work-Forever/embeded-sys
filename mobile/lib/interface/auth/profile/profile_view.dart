@@ -5,7 +5,7 @@ import 'package:mobile/core/helpers/form/form_field_values.dart';
 import 'package:mobile/core/locales/locale_context.dart';
 import 'package:mobile/core/view.dart';
 import 'package:mobile/core/widgets/base/base_card_builder.dart';
-import 'package:mobile/core/widgets/base/line.dart';
+import 'package:mobile/core/widgets/restrictor/line.dart';
 import 'package:mobile/core/widgets/headers/standard_header.dart';
 import 'package:mobile/core/widgets/inputs/drop_down/language_drop_down.dart';
 import 'package:mobile/interface/auth/profile/profile_view_model.dart';

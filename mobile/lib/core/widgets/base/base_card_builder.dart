@@ -17,6 +17,8 @@ class BaseCardBuilder {
   double? _symmetricHorizontalPadding;
   double? _symmetricVerticalPadding;
 
+  Border? _border;
+
   bool _hasShadow = true;
   bool _isCircular = false;
 
@@ -38,6 +40,11 @@ class BaseCardBuilder {
 
   BaseCardBuilder setBorderRadius(BorderRadius borderRadius) {
     _borderRadius = borderRadius;
+    return this;
+  }
+
+  BaseCardBuilder setBorder(Border border) {
+    _border = border;
     return this;
   }
 
@@ -78,6 +85,7 @@ class BaseCardBuilder {
         body: _body,
         color: _color,
         borderRadius: BorderRadius.zero,
+        border: _border,
         hasShadow: _hasShadow,
         isCircular: true,
       );
@@ -93,6 +101,7 @@ class BaseCardBuilder {
         verticalPadding: _symmetricVerticalPadding ?? 0,
         color: _color,
         borderRadius: _borderRadius,
+        border: _border,
         hasShadow: _hasShadow,
         isCircular: false,
       );
@@ -108,6 +117,7 @@ class BaseCardBuilder {
         body: _body,
         color: _color,
         borderRadius: _borderRadius,
+        border: _border,
         hasShadow: _hasShadow,
         isCircular: false,
       );
@@ -123,6 +133,7 @@ class BaseCardBuilder {
       bottomPadding: _bottomPadding ?? 0,
       leftPadding: _leftPadding ?? 0,
       rightPadding: _rightPadding ?? 0,
+      border: _border,
       hasShadow: _hasShadow,
       isCircular: false,
     );

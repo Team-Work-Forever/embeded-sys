@@ -11,6 +11,7 @@ class BaseCard extends StatelessWidget {
   final double bottomPadding;
   final double leftPadding;
   final double rightPadding;
+  final Border? border;
   final bool hasShadow;
   final bool isCircular;
 
@@ -25,6 +26,7 @@ class BaseCard extends StatelessWidget {
     this.bottomPadding = 0,
     this.leftPadding = 0,
     this.rightPadding = 0,
+    this.border,
     this.hasShadow = true,
     this.isCircular = false,
   });
@@ -36,6 +38,8 @@ class BaseCard extends StatelessWidget {
     required Widget body,
     Color color = AppColor.widgetBackground,
     BorderRadius borderRadius = AppBoxDecoration.borderRadius5,
+    border,
+    hasBorder = false,
     hasShadow = true,
     isCircular = false,
   }) : this.custom(
@@ -45,6 +49,7 @@ class BaseCard extends StatelessWidget {
          body: body,
          color: color,
          borderRadius: borderRadius,
+         border: border,
          hasShadow: hasShadow,
          isCircular: isCircular,
        );
@@ -58,6 +63,7 @@ class BaseCard extends StatelessWidget {
     double verticalPadding = 12,
     Color color = AppColor.widgetBackground,
     BorderRadius borderRadius = AppBoxDecoration.borderRadius5,
+    border,
     hasShadow = true,
     isCircular = false,
   }) : this.custom(
@@ -71,6 +77,7 @@ class BaseCard extends StatelessWidget {
          bottomPadding: verticalPadding,
          leftPadding: horizontalPadding,
          rightPadding: horizontalPadding,
+         border: border,
          hasShadow: hasShadow,
          isCircular: isCircular,
        );
@@ -99,6 +106,7 @@ class BaseCard extends StatelessWidget {
       decoration: BoxDecoration(
         shape: isCircular ? BoxShape.circle : BoxShape.rectangle,
         color: color,
+        border: border,
         borderRadius: isCircular ? null : borderRadius,
         boxShadow: hasShadow ? [AppBoxDecoration.defaultShadow] : [],
       ),

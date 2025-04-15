@@ -42,6 +42,7 @@ class _FormattedButtonState extends State<FormattedButton> {
             : FormattedButtonType.normal;
 
     return InkWell(
+      borderRadius: AppBoxDecoration.borderRadius10,
       onTap: widget.disabled ? null : widget.onPress,
       child: Container(
         height: widget.height,

@@ -3,7 +3,7 @@ import 'package:mobile/core/config/global.dart';
 import 'package:mobile/core/config/monitor.dart';
 import 'package:mobile/core/locales/locale_context.dart';
 import 'package:mobile/core/models/section_item.dart';
-import 'package:mobile/core/widgets/base/line.dart';
+import 'package:mobile/core/widgets/restrictor/line.dart';
 import 'package:mobile/core/widgets/cards/parking_lot.dart';
 import 'package:mobile/core/widgets/layout/helpers/layout_helper.dart';
 
