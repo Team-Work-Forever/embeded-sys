@@ -7,7 +7,7 @@ import 'package:mobile/core/models/section_item.dart';
 import 'package:mobile/core/view.dart';
 import 'package:mobile/core/widgets/buttons/circular_button.dart';
 import 'package:mobile/core/widgets/headers/home_header.dart';
-import 'package:mobile/core/widgets/helpers/svg_image.dart';
+import 'package:mobile/core/widgets/helpers/svg_image_builder.dart';
 import 'package:mobile/core/widgets/layout/interactive_matrix.dart';
 import 'package:mobile/core/widgets/layout/list_parking_lot.dart';
 import 'package:mobile/core/widgets/modal/modal.dart';
@@ -123,11 +123,10 @@ final class HomeView extends LinearView<HomeViewModel> {
       ),
       content: Column(
         children: [
-          SvgImage.base(
-            path: AppImages.alertSVG,
-            width: sizeContent,
-            height: sizeContent,
-          ),
+          SvgImageBuilder()
+              .setSvgPath(AppImages.alertSVG)
+              .setSize(sizeContent, sizeContent)
+              .build(),
         ],
       ),
       extraButtons: [],

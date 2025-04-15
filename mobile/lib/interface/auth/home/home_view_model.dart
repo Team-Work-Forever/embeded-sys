@@ -5,6 +5,7 @@ import 'package:mobile/core/models/section_item.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
 import 'package:mobile/core/providers/park_sense_provider.dart';
 import 'package:mobile/interface/auth_routes.dart';
+import 'package:mobile/interface/protected_routes.dart';
 import 'package:mobile/services/proto/parksense.pb.dart';
 
 final class HomeViewModel extends FormViewModel {
@@ -82,8 +83,7 @@ final class HomeViewModel extends FormViewModel {
   }
 
   void goToProfile() async {
-    // TODO: CHANGE ROUTE
-    // await _navigationManager.pushAsync(AuthRoutes.login);
+    await _navigationManager.pushAsync(ProtectedRoutes.profile);
   }
 
   @override

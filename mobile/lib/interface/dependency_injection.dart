@@ -2,10 +2,13 @@ import 'package:get_it/get_it.dart';
 import 'package:mobile/application_router.dart';
 import 'package:mobile/core/helpers/nav_manager.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
+import 'package:mobile/core/providers/language_provider.dart';
 import 'package:mobile/core/providers/park_sense_provider.dart';
 import 'package:mobile/dependency_injection.dart';
 import 'package:mobile/interface/auth/home/home_view.dart';
 import 'package:mobile/interface/auth/home/home_view_model.dart';
+import 'package:mobile/interface/auth/profile/profile_view.dart';
+import 'package:mobile/interface/auth/profile/profile_view_model.dart';
 import 'package:mobile/interface/login/login_view.dart';
 import 'package:mobile/interface/login/login_view_model.dart';
 import 'package:mobile/interface/auth_routes.dart';
@@ -17,6 +20,7 @@ extension InterfaceInjection on DependencyInjection {
     var authProvider = it<AuthProvider>();
 
     var parkSenseProvider = it<ParkSenseProvider>();
+    var languageProvider = it<LanguageProvider>();
 
     it.registerFactory(() => LoginViewModel(authProvider, navManager));
 
@@ -24,11 +28,16 @@ extension InterfaceInjection on DependencyInjection {
       () => HomeViewModel(parkSenseProvider, authProvider, navManager),
       dispose: (homeViewModel) => homeViewModel.dispose(),
     );
+    it.registerLazySingleton(
+      () => ProfileViewModel(authProvider, languageProvider, navManager),
+      dispose: (profileViewModel) => profileViewModel.dispose(),
+    );
   }
 
   _addViews(GetIt it) {
     it.registerFactory(() => LoginView(viewModel: it<LoginViewModel>()));
     it.registerFactory(() => HomeView(viewModel: it<HomeViewModel>()));
+    it.registerFactory(() => ProfileView(viewModel: it<ProfileViewModel>()));
   }
 
   void addInterface(ApplicationRouter appRouter) {

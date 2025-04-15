@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:mobile/core/config/global.dart';
 import 'package:mobile/core/config/images.dart';
 import 'package:mobile/core/config/monitor.dart';
@@ -9,7 +8,7 @@ import 'package:mobile/core/locales/locale_context.dart';
 import 'package:mobile/core/view.dart';
 import 'package:mobile/core/widgets/buttons/formatted_button/formatted_button.dart';
 import 'package:mobile/core/widgets/helpers/svg_image.dart';
-import 'package:mobile/core/widgets/helpers/svg_image_buider.dart';
+import 'package:mobile/core/widgets/helpers/svg_image_builder.dart';
 import 'package:mobile/core/widgets/inputs/formatted_text_field/default_formatted_text_field.dart';
 import 'package:mobile/core/widgets/inputs/formatted_text_field/formatted_text_field.dart';
 import 'package:mobile/interface/login/login_view_model.dart';
