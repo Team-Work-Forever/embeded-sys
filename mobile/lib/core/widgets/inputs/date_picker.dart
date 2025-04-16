@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile/core/config/global.dart';
 import 'package:mobile/core/config/monitor.dart';
+import 'package:mobile/core/helpers/dialog_helpers.dart';
 import 'package:mobile/core/locales/locale_context.dart';
 import 'package:mobile/core/widgets/base/base_card_builder.dart';
 
@@ -82,17 +83,9 @@ class _DatePickerState extends State<DatePicker> {
     );
 
     if (combined.isAfter(maxDate)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            LocaleContext.get().add_reserve_invalid_date,
-            style: AppText.bowlbyOne(
-              color: AppColor.widgetBackground,
-              fontSize: TextSizes.title6,
-            ),
-          ),
-          backgroundColor: AppColor.strongRed,
-        ),
+      DialogHelper.showError(
+        context,
+        LocaleContext.get().add_reserve_invalid_date,
       );
       return;
     }
