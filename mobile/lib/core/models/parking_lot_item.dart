@@ -4,6 +4,8 @@ import 'package:mobile/core/config/global.dart';
 
 class ParkingLotItem {
   final String id;
+  final String slotId;
+  final String? slot;
   final bool myCar;
   late ParkingLotStates state;
   final int row;
@@ -11,6 +13,8 @@ class ParkingLotItem {
 
   ParkingLotItem({
     required this.id,
+    required this.slotId,
+    this.slot,
     required this.myCar,
     required this.state,
     required this.row,

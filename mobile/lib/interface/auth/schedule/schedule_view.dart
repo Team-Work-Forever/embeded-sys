@@ -18,6 +18,7 @@ final class ScheduleView extends LinearView<ScheduleViewModel> {
     BuildContext context,
     ScheduleViewModel viewModel,
     Widget card,
+    String id,
   ) {
     var modalText = LocaleContext.get().schedule_cancel_reserve;
 
@@ -43,7 +44,7 @@ final class ScheduleView extends LinearView<ScheduleViewModel> {
         ButtonOptionItem(
           text: LocaleContext.get().modal_confirm,
           onPress: () {
-            viewModel.cancelReserve();
+            viewModel.cancelReserve(id);
             Navigator.of(context).pop();
           },
           backgroundColor: AppColor.buttonBackground,
@@ -68,7 +69,12 @@ final class ScheduleView extends LinearView<ScheduleViewModel> {
         for (var reserve in viewModel.reserves) ...[
           reserve.toCard(
             context,
-            _buildModal(context, viewModel, reserve.toCurrentCard(context)),
+            _buildModal(
+              context,
+              viewModel,
+              reserve.toCurrentCard(context),
+              reserve.id,
+            ),
           ),
         ],
       ],
@@ -127,10 +133,9 @@ final class ScheduleView extends LinearView<ScheduleViewModel> {
 
   @override
   Widget build(BuildContext context, ScheduleViewModel viewModel) {
-    const double gap = 24;
     const double internalGap = 12;
 
-    const double verticalPadding = 24;
+    const double verticalPadding = 16;
     const double horizontalPadding = 38;
 
     return Scaffold(
@@ -149,16 +154,10 @@ final class ScheduleView extends LinearView<ScheduleViewModel> {
                 horizontal: horizontalPadding,
               ),
               child: Column(
-                spacing: gap,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                spacing: internalGap,
                 children: [
-                  Column(
-                    spacing: internalGap,
-                    children: [
-                      _buildReserves(context),
-                      _buildReservesHistory(context),
-                    ],
-                  ),
+                  _buildReserves(context),
+                  _buildReservesHistory(context),
                 ],
               ),
             ),

@@ -1,5 +1,7 @@
 enum FormFieldValues implements Comparable<FormFieldValues> {
   licensePlate(value: "licensePlate"),
+  date(value: "date"),
+  parkLot(value: "parkLot"),
   language(value: "language");
 
   final String value;

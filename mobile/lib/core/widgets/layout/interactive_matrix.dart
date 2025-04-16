@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/config/global.dart';
 import 'package:mobile/core/errors/invalid_matrix_lot.dart';
 import 'package:mobile/core/models/parking_lot_item.dart';
 import 'package:mobile/core/models/section_item.dart';
@@ -9,12 +10,16 @@ class InteractiveMatrix extends StatefulWidget {
   final int rows;
   final int columns;
   final List<SectionItem> sections;
+  final void Function(ParkingLotItem card)? onTapLot;
+  final Color? onTapColor;
 
   const InteractiveMatrix({
     super.key,
     required this.rows,
     required this.columns,
     required this.sections,
+    this.onTapLot,
+    this.onTapColor = AppColor.primaryInfo,
   });
 
   @override
@@ -23,6 +28,50 @@ class InteractiveMatrix extends StatefulWidget {
 
 class _InteractiveMatrixState extends State<InteractiveMatrix> {
   final double _sizeCards = 40;
+  String? _selectedLotId;
+
+  final TransformationController _transformationController =
+      TransformationController();
+  final GlobalKey _matrixKey = GlobalKey();
+  bool _initialZoomApplied = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _applyInitialZoom());
+  }
+
+  void _applyInitialZoom() {
+    final RenderBox? matrixBox =
+        _matrixKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? viewerBox = context.findRenderObject() as RenderBox?;
+
+    if (matrixBox == null || viewerBox == null || !matrixBox.hasSize) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _applyInitialZoom());
+      return;
+    }
+
+    final matrixSize = matrixBox.size;
+    final viewerSize = viewerBox.size;
+
+    final scaleX = viewerSize.width / matrixSize.width;
+    final scaleY = viewerSize.height / matrixSize.height;
+    final scale = (scaleX < scaleY ? scaleX : scaleY) * 0.9;
+
+    final dx = (viewerSize.width - matrixSize.width * scale) / (2 * scale);
+    final dy = (viewerSize.height - matrixSize.height * scale) / (2 * scale);
+
+    _transformationController.value =
+        Matrix4.identity()
+          ..scale(scale)
+          ..translate(dx, dy);
+
+    if (!_initialZoomApplied) {
+      setState(() {
+        _initialZoomApplied = true;
+      });
+    }
+  }
 
   bool verifyIfExistsLot(
     int row,
@@ -70,6 +119,16 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
     return map;
   }
 
+  void _handleTapOnFreeLot(ParkingLotItem lot) {
+    setState(() {
+      _selectedLotId = lot.id;
+    });
+
+    if (widget.onTapLot != null) {
+      widget.onTapLot!(lot);
+    }
+  }
+
   Widget _buildCard(
     int row,
     int col,
@@ -82,10 +141,26 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
       final item = mapped.item;
 
       return ParkingLot.matrix(
+        id: item.id,
         myCar: item.myCar,
         number: mapped.number,
         section: mapped.sectionLabel,
-        color: item.state.color,
+        color:
+            item.id == _selectedLotId ? widget.onTapColor! : item.state.color,
+        onTap:
+            item.state == ParkingLotStates.free
+                ? () => _handleTapOnFreeLot(
+                  ParkingLotItem(
+                    id: item.id,
+                    slotId: item.slotId,
+                    slot: "${mapped.sectionLabel}${mapped.number}",
+                    myCar: item.myCar,
+                    state: item.state,
+                    row: row,
+                    column: col,
+                  ),
+                )
+                : null,
       );
     } else {
       return ParkingLot.matrix(
@@ -103,6 +178,7 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
     Map<String, _MappedParkingLotData> lotMap,
   ) {
     return Column(
+      key: _matrixKey,
       mainAxisSize: MainAxisSize.min,
       children: List.generate(rows, (row) {
         return Row(
@@ -122,16 +198,30 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
   Widget build(BuildContext context) {
     final map = _mapParkingLots();
 
-    return InteractiveViewer(
-      minScale: 0.1,
-      maxScale: 1.0,
-      boundaryMargin: EdgeInsets.symmetric(
-        horizontal: widget.rows * _sizeCards,
-        vertical: widget.columns * _sizeCards,
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: _initialZoomApplied ? 1.0 : 0.0,
+      child: IgnorePointer(
+        ignoring: !_initialZoomApplied,
+        child: InteractiveViewer(
+          transformationController: _transformationController,
+          minScale: 0.1,
+          maxScale: 1.0,
+          boundaryMargin: EdgeInsets.symmetric(
+            horizontal: widget.columns * _sizeCards * 3,
+            vertical: widget.rows * _sizeCards * 3,
+          ),
+          constrained: false,
+          child: _buildMatrix(widget.rows, widget.columns, map),
+        ),
       ),
-      constrained: false,
-      child: _buildMatrix(widget.rows, widget.columns, map),
     );
+  }
+
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
   }
 }
 

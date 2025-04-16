@@ -29,6 +29,7 @@ extension ReserveCardFromHistory on ReserveHistoryItem {
   Widget toCard() {
     return ReserveCardFactory.history(
       date: dateBegin,
+      dateEnd: dateEnd,
       interval: DateHelper.formatInterval(dateBegin, dateEnd),
       duration: DateHelper.calculateDurationInMinutes(dateBegin, dateEnd),
       slot: slot,

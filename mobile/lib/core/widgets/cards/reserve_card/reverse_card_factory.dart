@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile/core/helpers/date_helper.dart';
 import 'package:mobile/core/widgets/cards/reserve_card/reserve_card_builder.dart';
 import 'package:mobile/core/widgets/base/base_card_builder.dart';
 import 'package:mobile/core/widgets/buttons/buttonImpl.dart';
@@ -10,6 +11,7 @@ import 'package:mobile/core/config/monitor.dart';
 class ReserveCardFactory {
   static Widget history({
     required DateTime date,
+    required DateTime dateEnd,
     required String interval,
     required int duration,
     required String slot,
@@ -20,7 +22,7 @@ class ReserveCardFactory {
 
     return ReserveCardBuilder()
         .setBaseContent(_buildBase(interval, '$duration min'))
-        .setLeftSection(_buildLeft(infoWidth, height, date))
+        .setLeftSection(_buildLeft(infoWidth, height, date, dateEnd: dateEnd))
         .setRightSection(_buildRight(infoWidth, height, slot))
         .build();
   }
@@ -153,7 +155,63 @@ class ReserveCardFactory {
     );
   }
 
-  static Widget _buildLeft(double width, double height, DateTime date) {
+  static Widget _buildDateTextDifferent(
+    DateTime date, {
+    String suffix = '',
+    double fontSize = TextSizes.title4,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          DateFormat('dd').format(date),
+          style: AppText.bowlbyOne(
+            color: AppColor.widgetBackground,
+            fontSize: fontSize,
+          ),
+        ),
+        Text(
+          DateFormat('MMM').format(date) + suffix,
+          style: AppText.bowlbyOne(
+            color: AppColor.widgetBackground,
+            fontSize: fontSize,
+          ),
+        ),
+      ],
+    );
+  }
+
+  static Widget _buildDateTextSame(DateTime date) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          DateFormat('dd').format(date),
+          style: AppText.bowlbyOne(
+            color: AppColor.widgetBackground,
+            fontSize: TextSizes.title2,
+          ),
+        ),
+        Text(
+          DateFormat('MMM').format(date),
+          style: AppText.bowlbyOne(
+            color: AppColor.widgetBackground,
+            fontSize: TextSizes.title2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  static Widget _buildLeft(
+    double width,
+    double height,
+    DateTime date, {
+    DateTime? dateEnd,
+  }) {
+    final showDateRange =
+        dateEnd != null && !DateHelper.isSameDay(date, dateEnd);
+
     return BaseCardBuilder()
         .setSize(width, height)
         .hasNotShadow()
@@ -167,22 +225,20 @@ class ReserveCardFactory {
         .setBody(
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                DateFormat('dd').format(date),
-                style: AppText.bowlbyOne(
-                  color: AppColor.widgetBackground,
-                  fontSize: TextSizes.title2,
-                ),
-              ),
-              Text(
-                DateFormat('MMM').format(date),
-                style: AppText.bowlbyOne(
-                  color: AppColor.widgetBackground,
-                  fontSize: TextSizes.title2,
-                ),
-              ),
-            ],
+            children:
+                showDateRange
+                    ? [
+                      _buildDateTextDifferent(
+                        date,
+                        fontSize: TextSizes.title5,
+                        suffix: '/',
+                      ),
+                      _buildDateTextDifferent(
+                        dateEnd,
+                        fontSize: TextSizes.title5,
+                      ),
+                    ]
+                    : [_buildDateTextSame(date)],
           ),
         )
         .build();

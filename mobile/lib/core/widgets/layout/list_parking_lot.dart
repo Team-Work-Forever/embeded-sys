@@ -47,6 +47,7 @@ class ListParkingLot extends StatelessWidget {
       children: [
         for (var entry in sections[index].parkingLots.asMap().entries) ...[
           ParkingLot.list(
+            id: entry.value.id,
             myCar: entry.value.myCar,
             number: entry.key + 1,
             color: entry.value.state.color,

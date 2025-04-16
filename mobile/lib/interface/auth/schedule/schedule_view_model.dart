@@ -19,7 +19,7 @@ final class ScheduleViewModel extends FormViewModel {
       slotId: "A1",
       slot: "A1",
       dateBegin: DateTime(2022, 9, 5, 07, 30),
-      dateEnd: DateTime(2022, 14, 5, 10, 45),
+      dateEnd: DateTime(2022, 10, 5, 10, 45),
     ),
     ReserveHistoryItem(
       id: "3",
@@ -33,7 +33,7 @@ final class ScheduleViewModel extends FormViewModel {
       slotId: "B5",
       slot: "B5",
       dateBegin: DateTime(2025, 4, 6, 10, 15),
-      dateEnd: DateTime(2025, 4, 6, 11, 45),
+      dateEnd: DateTime(2025, 4, 7, 11, 45),
     ),
     ReserveHistoryItem(
       id: "5",
@@ -59,12 +59,11 @@ final class ScheduleViewModel extends FormViewModel {
     await _navigationManager.pushAsync(ProtectedRoutes.home);
   }
 
-  void cancelReserve() async {
+  void cancelReserve(String id) async {
     //TODO: CANCEL RESERVE
   }
 
   void addReserve() async {
-    // TODO: CHANGE PATH
-    // await _navigationManager.pushAsync(AuthRoutes.login);
+    await _navigationManager.pushAsync(ProtectedRoutes.addReserve);
   }
 }

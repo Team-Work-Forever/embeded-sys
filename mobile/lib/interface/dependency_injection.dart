@@ -9,6 +9,8 @@ import 'package:mobile/interface/auth/home/home_view.dart';
 import 'package:mobile/interface/auth/home/home_view_model.dart';
 import 'package:mobile/interface/auth/profile/profile_view.dart';
 import 'package:mobile/interface/auth/profile/profile_view_model.dart';
+import 'package:mobile/interface/auth/schedule/add_reserve/add_reserve_view.dart';
+import 'package:mobile/interface/auth/schedule/add_reserve/add_reserve_view_model.dart';
 import 'package:mobile/interface/auth/schedule/schedule_view.dart';
 import 'package:mobile/interface/auth/schedule/schedule_view_model.dart';
 import 'package:mobile/interface/login/login_view.dart';
@@ -26,17 +28,15 @@ extension InterfaceInjection on DependencyInjection {
 
     it.registerFactory(() => LoginViewModel(authProvider, navManager));
 
-    it.registerLazySingleton(
+    it.registerFactory(
       () => HomeViewModel(parkSenseProvider, authProvider, navManager),
-      dispose: (homeViewModel) => homeViewModel.dispose(),
     );
-    it.registerLazySingleton(
+    it.registerFactory(
       () => ProfileViewModel(authProvider, languageProvider, navManager),
-      dispose: (profileViewModel) => profileViewModel.dispose(),
     );
-    it.registerLazySingleton(
-      () => ScheduleViewModel(navManager),
-      dispose: (scheduleViewModel) => scheduleViewModel.dispose(),
+    it.registerFactory(() => ScheduleViewModel(navManager));
+    it.registerFactory(
+      () => AddReserveViewModel(parkSenseProvider, authProvider, navManager),
     );
   }
 
@@ -45,6 +45,9 @@ extension InterfaceInjection on DependencyInjection {
     it.registerFactory(() => HomeView(viewModel: it<HomeViewModel>()));
     it.registerFactory(() => ProfileView(viewModel: it<ProfileViewModel>()));
     it.registerFactory(() => ScheduleView(viewModel: it<ScheduleViewModel>()));
+    it.registerFactory(
+      () => AddReserveView(viewModel: it<AddReserveViewModel>()),
+    );
   }
 
   void addInterface(ApplicationRouter appRouter) {

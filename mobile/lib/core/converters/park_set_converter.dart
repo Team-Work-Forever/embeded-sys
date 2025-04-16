@@ -4,6 +4,7 @@ import 'package:mobile/services/proto/parksense.pb.dart';
 
 class ParkSetConverter {
   static List<ParkingLotItem> convertParkLotToParkingLotItem(
+    String parkSetId,
     List<ParkLot> parkLot,
     ParkState state,
   ) {
@@ -11,6 +12,7 @@ class ParkSetConverter {
         .map(
           (e) => ParkingLotItem(
             id: e.parkLotId,
+            slotId: parkSetId,
             myCar: false,
             state:
                 state.value == 1
@@ -26,7 +28,11 @@ class ParkSetConverter {
   static SectionItem convertParkSetToSectionItem(ParkSet parkSet) {
     return SectionItem(
       sectionId: parkSet.parkSetId,
-      parkingLots: convertParkLotToParkingLotItem(parkSet.lots, parkSet.state),
+      parkingLots: convertParkLotToParkingLotItem(
+        parkSet.parkSetId,
+        parkSet.lots,
+        parkSet.state,
+      ),
       state: SectionStates.getOfId(parkSet.state.value),
     );
   }
