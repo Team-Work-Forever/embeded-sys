@@ -46,6 +46,8 @@
   "@add_reserve_parking_lot": {},
   "add_reserve_parking_lot_description": "Please select an available parking space",
   "@add_reserve_parking_lot_description": {},
+  "add_reserve_confirm_reserve": "Are you sure about the reserve?",
+  "@add_reserve_confirm_reserve": {},
   "interactive_matrix_not_free": "Select a free parking space",
   "@interactive_matrix_not_free": {},
   "modal_cancel": "Cancel",

@@ -5,10 +5,10 @@ final class AppColor {
   // Widget Colors
   static const Color widgetBackground = Color.fromRGBO(246, 249, 252, 1);
   static const Color widgetBackgroundBlurry = Color.fromRGBO(
-    246,
-    249,
-    252,
-    0.76,
+    171,
+    173,
+    174,
+    0.761,
   );
 
   static const Color primaryColor = Color.fromRGBO(0, 48, 73, 1);

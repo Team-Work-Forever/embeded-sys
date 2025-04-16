@@ -27,12 +27,39 @@ class _DatePickerState extends State<DatePicker> {
   Future<void> _pickDateTime() async {
     final now = DateTime.now();
     final maxDate = now.add(const Duration(hours: 48));
+    theme(context, child) {
+      return Theme(
+        data: Theme.of(context).copyWith(
+          primaryColor: AppColor.primaryColor,
+          timePickerTheme: TimePickerThemeData(
+            dialHandColor: AppColor.primaryColor,
+            entryModeIconColor: AppColor.primaryColor,
+            dialBackgroundColor: AppColor.widgetBackground,
+          ),
+          colorScheme: const ColorScheme.light(
+            primary: AppColor.primaryColor,
+            onPrimary: AppColor.widgetBackground,
+            onSurface: AppColor.primaryColor,
+          ),
+          dialogTheme: DialogTheme(
+            backgroundColor: AppColor.widgetBackground,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppBoxDecoration.borderRadius5,
+            ),
+            shadowColor: AppColor.shadowColor,
+          ),
+        ),
+        child: child!,
+      );
+    }
 
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: _selected ?? now,
       firstDate: now,
       lastDate: maxDate,
+      barrierColor: AppColor.widgetBackgroundBlurry,
+      builder: theme,
     );
 
     if (pickedDate == null) return;
@@ -40,6 +67,8 @@ class _DatePickerState extends State<DatePicker> {
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_selected ?? now),
+      barrierColor: AppColor.widgetBackgroundBlurry,
+      builder: theme,
     );
 
     if (pickedTime == null) return;

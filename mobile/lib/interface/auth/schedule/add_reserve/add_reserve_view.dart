@@ -23,7 +23,7 @@ final class AddReserveView extends LinearView<AddReserveViewModel> {
     AddReserveViewModel viewModel,
     ParkingLotItem parkLot,
   ) {
-    var modalText = LocaleContext.get().schedule_cancel_reserve;
+    var modalText = LocaleContext.get().add_reserve_confirm_reserve;
     ReserveItem card = ReserveItem(
       id: parkLot.id,
       slotId: parkLot.slotId,
