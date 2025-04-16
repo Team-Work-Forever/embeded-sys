@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:mobile/core/config/global.dart';
+import 'package:mobile/core/locales/locale_context.dart';
 
 class ParkingLotItem {
   final String id;
@@ -38,6 +39,17 @@ enum ParkingLotStates implements Comparable<ParkingLotStates> {
     required this.value,
     required this.color,
   });
+
+  String get displayValue {
+    final locale = LocaleContext.get();
+    return switch (this) {
+      ParkingLotStates.notDefined => locale.parking_lot_state_not_defined,
+      ParkingLotStates.free => locale.parking_lot_state_free,
+      ParkingLotStates.occupied => locale.parking_lot_state_occupied,
+      ParkingLotStates.reserved => locale.parking_lot_state_reserved,
+      ParkingLotStates.emergency => locale.parking_lot_state_emergency,
+    };
+  }
 
   static ParkingLotStates getOf(String value) =>
       ParkingLotStates.values.singleWhere((element) => element.value == value);

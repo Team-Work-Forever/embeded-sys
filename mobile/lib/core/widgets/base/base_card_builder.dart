@@ -3,8 +3,8 @@ import 'package:mobile/core/config/global.dart';
 import 'package:mobile/core/widgets/base/base_card.dart';
 
 class BaseCardBuilder {
-  double _width = 20;
-  double _height = 20;
+  double? _width;
+  double? _height;
   Widget _body = const SizedBox();
   Color _color = AppColor.widgetBackground;
   BorderRadius _borderRadius = AppBoxDecoration.borderRadius5;
@@ -24,6 +24,16 @@ class BaseCardBuilder {
 
   BaseCardBuilder setSize(double width, double height) {
     _width = width;
+    _height = height;
+    return this;
+  }
+
+  BaseCardBuilder setWidth(double width) {
+    _width = width;
+    return this;
+  }
+
+  BaseCardBuilder setHeight(double height) {
     _height = height;
     return this;
   }

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/config/global.dart';
 
 class BaseCard extends StatelessWidget {
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
   final Widget body;
   final Color color;
   final BorderRadius borderRadius;
@@ -17,8 +17,8 @@ class BaseCard extends StatelessWidget {
 
   const BaseCard.custom({
     super.key,
-    required this.width,
-    required this.height,
+    this.width,
+    this.height,
     required this.body,
     this.color = AppColor.widgetBackground,
     this.borderRadius = AppBoxDecoration.borderRadius5,
@@ -33,8 +33,8 @@ class BaseCard extends StatelessWidget {
 
   const BaseCard.zeroPadding({
     Key? key,
-    required double width,
-    required double height,
+    double? width,
+    double? height,
     required Widget body,
     Color color = AppColor.widgetBackground,
     BorderRadius borderRadius = AppBoxDecoration.borderRadius5,
@@ -56,8 +56,8 @@ class BaseCard extends StatelessWidget {
 
   const BaseCard.symmetric({
     Key? key,
-    required double width,
-    required double height,
+    double? width,
+    double? height,
     required Widget body,
     double horizontalPadding = 16,
     double verticalPadding = 12,
@@ -111,8 +111,8 @@ class BaseCard extends StatelessWidget {
         boxShadow: hasShadow ? [AppBoxDecoration.defaultShadow] : [],
       ),
       child: SizedBox(
-        width: width - effectiveHorizontalPadding,
-        height: height - effectiveVerticalPadding,
+        width: width == null ? null : (width! - effectiveHorizontalPadding),
+        height: height == null ? null : (height! - effectiveVerticalPadding),
         child: body,
       ),
     );
