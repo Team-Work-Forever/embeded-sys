@@ -124,9 +124,7 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
       _selectedLotId = lot.id;
     });
 
-    if (widget.onTapLot != null) {
-      widget.onTapLot!(lot);
-    }
+    widget.onTapLot?.call(lot);
   }
 
   Widget _buildCard(
@@ -148,7 +146,7 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
         color:
             item.id == _selectedLotId ? widget.onTapColor! : item.state.color,
         onTap:
-            item.state == ParkingLotStates.free
+            isClickable(item)
                 ? () => _handleTapOnFreeLot(
                   ParkingLotItem(
                     id: item.id,
@@ -171,6 +169,9 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
       );
     }
   }
+
+  bool isClickable(ParkingLotItem item) =>
+      item.state == ParkingLotStates.free && widget.onTapLot != null;
 
   Widget _buildMatrix(
     int rows,
