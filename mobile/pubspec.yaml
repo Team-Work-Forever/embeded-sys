@@ -17,6 +17,9 @@ dependencies:
   shared_preferences: ^2.2.2
   rxdart: ^0.28.0
 
+  # Images
+  flutter_svg: ^2.0.17
+
   flutter_dotenv: ^5.2.1
   jwt_decoder: ^2.0.1
   flutter_secure_storage: ^9.2.4
@@ -95,3 +98,5 @@ flutter:
   assets:
     - .env
     - assets/icon.png
+    - assets/icon.svg
+    - assets/alert.svg

@@ -17,8 +17,10 @@ type (
 	ParkLotState int
 
 	ParkLot struct {
-		Id    string
-		State ParkLotState
+		Id     string
+		State  ParkLotState
+		Row    uint32
+		Column uint32
 	}
 
 	ParkSet struct {

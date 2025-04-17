@@ -24,6 +24,8 @@ class ParkLot extends $pb.GeneratedMessage {
   factory ParkLot({
     $core.String? parkLotId,
     LotState? state,
+    $core.int? row,
+    $core.int? column,
   }) {
     final $result = create();
     if (parkLotId != null) {
@@ -31,6 +33,12 @@ class ParkLot extends $pb.GeneratedMessage {
     }
     if (state != null) {
       $result.state = state;
+    }
+    if (row != null) {
+      $result.row = row;
+    }
+    if (column != null) {
+      $result.column = column;
     }
     return $result;
   }
@@ -41,6 +49,8 @@ class ParkLot extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ParkLot', package: const $pb.PackageName(_omitMessageNames ? '' : 'parksense'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'parkLotId')
     ..e<LotState>(2, _omitFieldNames ? '' : 'state', $pb.PbFieldType.OE, defaultOrMaker: LotState.UNKNOWN, valueOf: LotState.valueOf, enumValues: LotState.values)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'row', $pb.PbFieldType.OU3)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'column', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -82,6 +92,24 @@ class ParkLot extends $pb.GeneratedMessage {
   $core.bool hasState() => $_has(1);
   @$pb.TagNumber(2)
   void clearState() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get row => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set row($core.int v) { $_setUnsignedInt32(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasRow() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRow() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get column => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set column($core.int v) { $_setUnsignedInt32(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasColumn() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearColumn() => $_clearField(4);
 }
 
 class ParkSet extends $pb.GeneratedMessage {
