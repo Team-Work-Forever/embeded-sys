@@ -9,6 +9,13 @@ option go_package = "./internal/services/proto";
 
 service ParkSenseService {
   rpc StreamIncomingParkLot (google.protobuf.Empty) returns (stream ParkSet);
+
+  rpc GetAllParkSets (google.protobuf.Empty) returns (ParkSetListResponse);
+
+  rpc CreateReserve (CreateReserveRequest) returns (Reserve);
+  rpc GetUserActiveReserves (GetUserRequest) returns (ReserveListResponse);
+  rpc GetUserReserveHistory (GetUserRequest) returns (ReserveHistoryListResponse);
+  rpc CancelReserve (CancelReserveRequest) returns (google.protobuf.Empty);
 }
 
 enum LotState {
@@ -35,4 +42,43 @@ message ParkSet {
   repeated ParkLot lots = 2;
   ParkState state = 3;
   google.protobuf.Timestamp timestamp = 4;
+}
+
+message Reserve {
+  string reserve_id = 1;
+  string slot_id = 2;
+  string user_id = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message ReserveHistory {
+  string reserve_history_id = 1;
+  string slot_id = 2;
+  string user_id = 3;
+  google.protobuf.Timestamp timestamp_begin = 4;
+  google.protobuf.Timestamp timestamp_end = 5;
+}
+
+message CreateReserveRequest {
+  string slot_id = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message GetUserRequest {
+}
+
+message CancelReserveRequest {
+  string reserve_id = 1;
+}
+
+message ParkSetListResponse {
+  repeated ParkSet park_sets = 1;
+}
+
+message ReserveHistoryListResponse {
+  repeated ReserveHistory history = 1;
+}
+
+message ReserveListResponse {
+  repeated Reserve reserves = 1;
 }

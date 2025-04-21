@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"server/pkg/helpers"
 	"strings"
@@ -16,6 +17,10 @@ import (
 const (
 	AuthHeader string = "authorization"
 )
+
+type contextKey string
+
+const UserIDKey = contextKey("userId")
 
 type (
 	AuthMiddleware struct {
@@ -76,13 +81,13 @@ func (middleware *AuthMiddleware) validateToken(stream grpc.ServerStream, token 
 		ServerStream: stream,
 		ctx: context.WithValue(
 			stream.Context(),
-			"userId",
+			UserIDKey,
 			claims.Subject,
 		),
 	}, nil
 }
 
-func (middleware *AuthMiddleware) Handler(
+func (middleware *AuthMiddleware) StreamHandler(
 	srv any,
 	stream grpc.ServerStream,
 	info *grpc.StreamServerInfo,
@@ -108,4 +113,57 @@ func (middleware *AuthMiddleware) Handler(
 	}
 
 	return handler(srv, serverStream)
+}
+
+func (middleware *AuthMiddleware) UnaryHandler(
+	ctx context.Context,
+	req any,
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (any, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "Missing metadata")
+	}
+
+	authHeader := md[AuthHeader]
+	if len(authHeader) == 0 {
+		return nil, status.Error(codes.Unauthenticated, "Authorization token not provided")
+	}
+
+	token := strings.TrimPrefix(authHeader[0], "Bearer ")
+
+	claims, jwtToken, err := getClaims(token)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "Invalid token")
+	}
+
+	if err := middleware.tokenService.ValidateToken(claims.Subject, jwtToken.Raw, helpers.AccessTokenKey); err != nil {
+		return nil, status.Error(codes.Unauthenticated, "Invalid token")
+	}
+
+	ctx = context.WithValue(ctx, UserIDKey, claims.Subject)
+
+	return handler(ctx, req)
+}
+
+func ConditionalUnaryInterceptor(
+	interceptor grpc.UnaryServerInterceptor,
+	condition func(ctx context.Context, info *grpc.UnaryServerInfo) bool,
+) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		if condition(ctx, info) {
+			return interceptor(ctx, req, info, handler)
+		}
+		return handler(ctx, req)
+	}
+}
+
+func GetUserIDKey(ctx context.Context) (string, error) {
+
+	if userID, ok := ctx.Value(UserIDKey).(string); ok {
+		return userID, nil
+	}
+
+	return "", errors.New("user_id not provided")
 }
