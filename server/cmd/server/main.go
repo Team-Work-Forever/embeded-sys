@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"server/pkg"
 	"server/pkg/helpers"
 	"server/pkg/utils"
+	"strings"
 	"syscall"
 
 	"google.golang.org/grpc"
@@ -48,7 +50,15 @@ func main() {
 	authStreamInterceptor := middlewares.NewAuthMiddleware(tokenHelper)
 
 	grpcServer, err := adapters.NewRPCServer(
-		grpc.StreamInterceptor(authStreamInterceptor.Handler),
+		grpc.StreamInterceptor(authStreamInterceptor.StreamHandler),
+		grpc.UnaryInterceptor(
+			middlewares.ConditionalUnaryInterceptor(
+				authStreamInterceptor.UnaryHandler,
+				func(ctx context.Context, info *grpc.UnaryServerInfo) bool {
+					return !strings.HasPrefix(info.FullMethod, "/auth.AuthService/")
+				},
+			),
+		),
 	)
 
 	if err != nil {
@@ -68,16 +78,19 @@ func main() {
 		panic(err)
 	}
 
-	// bluetooth client
-	bluetoothServer := adapters.NewBluetoothServer(globalState)
-
 	// repositories
 	authRepository := repositories.NewAuthRepository(db)
+	parkSetRepository := repositories.NewParkSetRepository(db)
+	reserveRepository := repositories.NewReserveRepository(db)
+	reserveHistoryRepository := repositories.NewReserveHistoryRepository(db)
+
+	// bluetooth client
+	bluetoothServer := adapters.NewBluetoothServer(globalState, parkSetRepository)
 
 	// service registration
 	authService := services.NewAuthServiceImpl(authRepository, tokenHelper)
 
-	parkSenseService := services.NewParkSenseServiceImpl(globalState)
+	parkSenseService := services.NewParkSenseServiceImpl(globalState, reserveRepository, reserveHistoryRepository, authRepository, parkSetRepository)
 
 	// start service
 	grpcServer.RegisterServices([]pkg.Controller{

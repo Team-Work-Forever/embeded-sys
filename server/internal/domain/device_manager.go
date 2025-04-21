@@ -32,7 +32,7 @@ func (dm *DeviceManager) AddDevice(device *ParkSet) {
 	dm.mux.Lock()
 	defer dm.mux.Unlock()
 
-	dm.devices[device.Id] = device
+	dm.devices[device.ID] = device
 
 	for _, ch := range dm.listeners {
 		ch <- device
