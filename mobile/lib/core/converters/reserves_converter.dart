@@ -10,7 +10,7 @@ extension ReserveCardFromReserve on ReserveItem {
     return ReserveCardFactory.cancellable(
       date: date,
       time: DateFormat('HH:mm').format(date),
-      slot: slot,
+      slot: slot ?? '',
       context: context,
       modal: modal,
     );
@@ -20,7 +20,7 @@ extension ReserveCardFromReserve on ReserveItem {
     return ReserveCardFactory.current(
       date: date,
       time: DateFormat('HH:mm').format(date),
-      slot: slot,
+      slot: slot ?? '',
     );
   }
 }
@@ -32,7 +32,7 @@ extension ReserveCardFromHistory on ReserveHistoryItem {
       dateEnd: dateEnd,
       interval: DateHelper.formatInterval(dateBegin, dateEnd),
       duration: DateHelper.calculateDurationInMinutes(dateBegin, dateEnd),
-      slot: slot,
+      slot: slot ?? '',
     );
   }
 }

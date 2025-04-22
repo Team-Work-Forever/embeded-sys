@@ -1,4 +1,5 @@
 import 'package:mobile/core/models/parking_lot_item.dart';
+import 'package:mobile/core/models/reserve_item.dart';
 import 'package:mobile/core/models/section_item.dart';
 import 'package:mobile/services/proto/parksense.pb.dart';
 
@@ -34,6 +35,27 @@ class ParkSetConverter {
         parkSet.state,
       ),
       state: SectionStates.getOfId(parkSet.state.value),
+    );
+  }
+
+  static ReserveItem convertReserveToReserveItem(Reserve reserve) {
+    return ReserveItem(
+      id: reserve.reserveId,
+      slotId: reserve.slotId,
+      slot: reserve.slotLabel,
+      date: reserve.timestamp.toDateTime(),
+    );
+  }
+
+  static ReserveHistoryItem convertReserveHistoryToReserveHistoryItem(
+    ReserveHistory reserve,
+  ) {
+    return ReserveHistoryItem(
+      id: reserve.reserveHistoryId,
+      slotId: reserve.slotId,
+      slot: reserve.slotLabel,
+      dateBegin: reserve.timestampBegin.toDateTime(),
+      dateEnd: reserve.timestampEnd.toDateTime(),
     );
   }
 }

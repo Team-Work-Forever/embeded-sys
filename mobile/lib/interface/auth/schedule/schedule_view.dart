@@ -85,7 +85,7 @@ final class ScheduleView extends LinearView<ScheduleViewModel> {
     const double gap = 12;
 
     final grouped = GroupingHelper.groupAndSort<ReserveHistoryItem, int>(
-      items: viewModel.reservesCompleted,
+      items: viewModel.historyReserves,
       groupBy: (item) => item.dateBegin.year,
       groupSort: (a, b) => b.compareTo(a),
       itemSort: (a, b) => b.dateBegin.compareTo(a.dateBegin),

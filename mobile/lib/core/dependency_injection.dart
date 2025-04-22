@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:mobile/core/providers/language_provider.dart';
 import 'package:mobile/core/providers/language_provider_impl.dart';
+import 'package:mobile/core/providers/matrix_provider.dart';
+import 'package:mobile/core/providers/matrix_provider_impl.dart';
 import 'package:mobile/core/providers/park_sense_provider.dart';
 import 'package:mobile/core/providers/park_sense_provider_impl.dart';
 import 'package:mobile/dependency_injection.dart';
@@ -14,6 +16,7 @@ extension CoreInjection on DependencyInjection {
       ParkSenseProviderImpl(parkSenseService),
     );
     it.registerSingleton<LanguageProvider>(LanguageProviderImpl());
+    it.registerSingleton<MatrixProvider>(MatrixProviderImpl());
   }
 
   void addCore() {

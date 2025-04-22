@@ -3,6 +3,7 @@ import 'package:mobile/application_router.dart';
 import 'package:mobile/core/helpers/nav_manager.dart';
 import 'package:mobile/core/providers/auth_provider.dart';
 import 'package:mobile/core/providers/language_provider.dart';
+import 'package:mobile/core/providers/matrix_provider.dart';
 import 'package:mobile/core/providers/park_sense_provider.dart';
 import 'package:mobile/dependency_injection.dart';
 import 'package:mobile/interface/auth/home/home_view.dart';
@@ -25,18 +26,29 @@ extension InterfaceInjection on DependencyInjection {
 
     var parkSenseProvider = it<ParkSenseProvider>();
     var languageProvider = it<LanguageProvider>();
+    var matrixProvider = it<MatrixProvider>();
 
     it.registerFactory(() => LoginViewModel(authProvider, navManager));
 
     it.registerFactory(
-      () => HomeViewModel(parkSenseProvider, authProvider, navManager),
+      () => HomeViewModel(
+        parkSenseProvider,
+        authProvider,
+        matrixProvider,
+        navManager,
+      ),
     );
     it.registerFactory(
       () => ProfileViewModel(authProvider, languageProvider, navManager),
     );
-    it.registerFactory(() => ScheduleViewModel(navManager));
+    it.registerFactory(() => ScheduleViewModel(parkSenseProvider, navManager));
     it.registerFactory(
-      () => AddReserveViewModel(parkSenseProvider, authProvider, navManager),
+      () => AddReserveViewModel(
+        parkSenseProvider,
+        authProvider,
+        matrixProvider,
+        navManager,
+      ),
     );
   }
 
