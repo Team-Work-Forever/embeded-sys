@@ -36,12 +36,15 @@ final class AddReserveViewModel extends FormViewModel {
 
   int get getNumberRows => _matrixProvider.rows;
   int get getNumberColumns => _matrixProvider.cols;
+  int get rowOffset => _matrixProvider.rowOffset;
+  int get colOffset => _matrixProvider.colOffset;
 
   @override
-  void initSync() {
-    _getAllParkSets();
+  Future<void> initAsync() async {
+    await _getAllParkSets();
+    await _matrixProvider.defineMatrix(_sections);
 
-    super.initSync();
+    super.initAsync();
   }
 
   List<SectionItem> get sections => _sections;

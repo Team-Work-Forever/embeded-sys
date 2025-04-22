@@ -16,11 +16,11 @@ final class ScheduleViewModel extends FormViewModel {
   ScheduleViewModel(this._parkSenseProvider, this._navigationManager);
 
   @override
-  void initSync() {
-    _getAllReserves();
-    _getAllHistoryReserves();
+  Future<void> initAsync() async {
+    await _getAllReserves();
+    await _getAllHistoryReserves();
 
-    super.initSync();
+    super.initAsync();
   }
 
   List<ReserveItem> get reserves => _reserves;

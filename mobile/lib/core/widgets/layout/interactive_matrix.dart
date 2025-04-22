@@ -9,6 +9,8 @@ import 'package:mobile/core/widgets/layout/helpers/layout_helper.dart';
 class InteractiveMatrix extends StatefulWidget {
   final int rows;
   final int columns;
+  final int rowOffset;
+  final int colOffset;
   final List<SectionItem> sections;
   final void Function(ParkingLotItem card)? onTapLot;
   final Color? onTapColor;
@@ -17,6 +19,8 @@ class InteractiveMatrix extends StatefulWidget {
     super.key,
     required this.rows,
     required this.columns,
+    this.rowOffset = 0,
+    this.colOffset = 0,
     required this.sections,
     this.onTapLot,
     this.onTapColor = AppColor.primaryInfo,
@@ -173,21 +177,19 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
   bool isClickable(ParkingLotItem item) =>
       item.state == ParkingLotStates.free && widget.onTapLot != null;
 
-  Widget _buildMatrix(
-    int rows,
-    int columns,
-    Map<String, _MappedParkingLotData> lotMap,
-  ) {
+  Widget _buildMatrix(Map<String, _MappedParkingLotData> lotMap) {
     return Column(
       key: _matrixKey,
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(rows, (row) {
+      children: List.generate(widget.rows, (rIndex) {
+        final row = widget.rowOffset + rIndex;
         return Row(
           mainAxisSize: MainAxisSize.min,
-          children: List.generate(columns, (col) {
+          children: List.generate(widget.columns, (cIndex) {
+            final col = widget.colOffset + cIndex;
             return Padding(
               padding: const EdgeInsets.all(2.0),
-              child: _buildCard(row + 1, col + 1, lotMap),
+              child: _buildCard(row, col, lotMap),
             );
           }),
         );
@@ -213,7 +215,7 @@ class _InteractiveMatrixState extends State<InteractiveMatrix> {
             vertical: widget.rows * _sizeCards * 3,
           ),
           constrained: false,
-          child: _buildMatrix(widget.rows, widget.columns, map),
+          child: _buildMatrix(map),
         ),
       ),
     );

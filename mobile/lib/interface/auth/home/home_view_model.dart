@@ -31,6 +31,8 @@ final class HomeViewModel extends FormViewModel {
 
   int get getNumberRows => _matrixProvider.rows;
   int get getNumberColumns => _matrixProvider.cols;
+  int get rowOffset => _matrixProvider.rowOffset;
+  int get colOffset => _matrixProvider.colOffset;
 
   bool get isList => _isList;
   bool get modalShow => _modalShown;
@@ -40,11 +42,17 @@ final class HomeViewModel extends FormViewModel {
     _parkSenseProvider.startListening();
     _parkSenseProvider.subscrive(notifyListeners);
 
-    _getAllParkSets();
-
     _isList = true;
     _modalShown = false;
     super.initSync();
+  }
+
+  @override
+  Future<void> initAsync() async {
+    await _getAllParkSets();
+    await _matrixProvider.defineMatrix(_sections);
+
+    super.initAsync();
   }
 
   List<SectionItem> get sections => _sections;

@@ -37,6 +37,8 @@ final class HomeView extends LinearView<HomeViewModel> {
         sections: viewModel.sections,
         rows: viewModel.getNumberRows,
         columns: viewModel.getNumberColumns,
+        rowOffset: viewModel.rowOffset,
+        colOffset: viewModel.colOffset,
       ),
     );
   }
