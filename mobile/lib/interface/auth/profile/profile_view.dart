@@ -130,13 +130,15 @@ final class ProfileView extends LinearView<ProfileViewModel> {
             vertical: verticalPadding,
             horizontal: horizontalPadding,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildLicensePlate(),
-              SizedBox(height: gap),
-              _settingsAndPreferences(),
-            ],
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildLicensePlate(),
+                SizedBox(height: gap),
+                _settingsAndPreferences(),
+              ],
+            ),
           ),
         ),
       ),

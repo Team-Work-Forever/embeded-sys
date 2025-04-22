@@ -154,6 +154,8 @@ final class AddReserveView extends LinearView<AddReserveViewModel> {
           child: InteractiveMatrix(
             rows: viewModel.getNumberRows,
             columns: viewModel.getNumberColumns,
+            rowOffset: viewModel.rowOffset,
+            colOffset: viewModel.colOffset,
             sections: viewModel.sections,
             onTapLot: (parkLot) => viewModel.setParkLot(parkLot),
           ),
