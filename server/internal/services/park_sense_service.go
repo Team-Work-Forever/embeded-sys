@@ -7,7 +7,6 @@ import (
 	"server/internal/middlewares"
 	"server/internal/repositories"
 	"server/internal/services/proto"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -228,18 +227,6 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 
 	if reserve.UserId != user.ID {
 		return nil, status.Error(codes.PermissionDenied, "You do not own this reservation")
-	}
-
-	history := &domain.ReserveHistory{
-		SlotId:         reserve.SlotId,
-		SlotLabel:      reserve.SlotLabel,
-		UserId:         user.ID,
-		TimestampBegin: reserve.Timestamp,
-		TimestampEnd:   time.Now(),
-	}
-
-	if err := s.reserveHistoryRepo.Create(history); err != nil {
-		return nil, status.Error(codes.Internal, "Failed to archive reservation")
 	}
 
 	if err := s.reserveRepo.Delete(reserve); err != nil {
