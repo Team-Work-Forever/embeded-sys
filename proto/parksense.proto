@@ -13,8 +13,8 @@ service ParkSenseService {
   rpc GetAllParkSets (google.protobuf.Empty) returns (ParkSetListResponse);
 
   rpc CreateReserve (CreateReserveRequest) returns (Reserve);
-  rpc GetUserActiveReserves (GetUserRequest) returns (ReserveListResponse);
-  rpc GetUserReserveHistory (GetUserRequest) returns (ReserveHistoryListResponse);
+  rpc GetUserActiveReserves (google.protobuf.Empty) returns (ReserveListResponse);
+  rpc GetUserReserveHistory (google.protobuf.Empty) returns (ReserveHistoryListResponse);
   rpc CancelReserve (CancelReserveRequest) returns (google.protobuf.Empty);
 }
 
@@ -47,24 +47,24 @@ message ParkSet {
 message Reserve {
   string reserve_id = 1;
   string slot_id = 2;
-  string user_id = 3;
-  google.protobuf.Timestamp timestamp = 4;
+  string slot_label = 3;
+  string user_id = 4;
+  google.protobuf.Timestamp timestamp = 5;
 }
 
 message ReserveHistory {
   string reserve_history_id = 1;
   string slot_id = 2;
-  string user_id = 3;
-  google.protobuf.Timestamp timestamp_begin = 4;
-  google.protobuf.Timestamp timestamp_end = 5;
+  string slot_label = 3;
+  string user_id = 4;
+  google.protobuf.Timestamp timestamp_begin = 5;
+  google.protobuf.Timestamp timestamp_end = 6;
 }
 
 message CreateReserveRequest {
-  string slot_id = 2;
+  string slot_id = 1;
+  string slot_label = 2;
   google.protobuf.Timestamp timestamp = 3;
-}
-
-message GetUserRequest {
 }
 
 message CancelReserveRequest {

@@ -101,7 +101,7 @@ func (s *ParkSenseServiceImpl) CreateReserve(ctx context.Context, req *proto.Cre
 	userID, err := middlewares.GetUserIDKey(ctx)
 
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, "User not authenticated (aqui)")
+		return nil, status.Error(codes.Unauthenticated, "User not authenticated")
 	}
 
 	user, err := s.authRepo.GetByPublicId(userID)
@@ -122,6 +122,7 @@ func (s *ParkSenseServiceImpl) CreateReserve(ctx context.Context, req *proto.Cre
 
 	reserve := &domain.Reserve{
 		SlotId:    req.SlotId,
+		SlotLabel: req.SlotLabel,
 		UserId:    user.ID,
 		Timestamp: req.Timestamp.AsTime(),
 	}
@@ -134,12 +135,13 @@ func (s *ParkSenseServiceImpl) CreateReserve(ctx context.Context, req *proto.Cre
 	return &proto.Reserve{
 		ReserveId: reserve.PublicId,
 		SlotId:    reserve.SlotId,
+		SlotLabel: reserve.SlotLabel,
 		UserId:    user.PublicId,
 		Timestamp: req.Timestamp,
 	}, nil
 }
 
-func (s *ParkSenseServiceImpl) GetUserActiveReserves(ctx context.Context, req *proto.GetUserRequest) (*proto.ReserveListResponse, error) {
+func (s *ParkSenseServiceImpl) GetUserActiveReserves(ctx context.Context, req *emptypb.Empty) (*proto.ReserveListResponse, error) {
 	userID, err := middlewares.GetUserIDKey(ctx)
 
 	if err != nil {
@@ -163,6 +165,7 @@ func (s *ParkSenseServiceImpl) GetUserActiveReserves(ctx context.Context, req *p
 		list = append(list, &proto.Reserve{
 			ReserveId: r.PublicId,
 			SlotId:    r.SlotId,
+			SlotLabel: r.SlotLabel,
 			UserId:    user.PublicId,
 			Timestamp: timestamppb.New(r.Timestamp),
 		})
@@ -171,7 +174,7 @@ func (s *ParkSenseServiceImpl) GetUserActiveReserves(ctx context.Context, req *p
 	return &proto.ReserveListResponse{Reserves: list}, nil
 }
 
-func (s *ParkSenseServiceImpl) GetUserReserveHistory(ctx context.Context, req *proto.GetUserRequest) (*proto.ReserveHistoryListResponse, error) {
+func (s *ParkSenseServiceImpl) GetUserReserveHistory(ctx context.Context, req *emptypb.Empty) (*proto.ReserveHistoryListResponse, error) {
 	userID, err := middlewares.GetUserIDKey(ctx)
 
 	if err != nil {
@@ -194,6 +197,7 @@ func (s *ParkSenseServiceImpl) GetUserReserveHistory(ctx context.Context, req *p
 		list = append(list, &proto.ReserveHistory{
 			ReserveHistoryId: h.PublicId,
 			SlotId:           h.SlotId,
+			SlotLabel:        h.SlotLabel,
 			UserId:           user.PublicId,
 			TimestampBegin:   timestamppb.New(h.TimestampBegin),
 			TimestampEnd:     timestamppb.New(h.TimestampEnd),
@@ -228,6 +232,7 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 
 	history := &domain.ReserveHistory{
 		SlotId:         reserve.SlotId,
+		SlotLabel:      reserve.SlotLabel,
 		UserId:         user.ID,
 		TimestampBegin: reserve.Timestamp,
 		TimestampEnd:   time.Now(),

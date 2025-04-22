@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/providers/park_sense_provider.dart';
 import 'package:mobile/core/view_model.dart';
 import 'package:mobile/services/parksense/park_sense_service.dart';
+import 'package:mobile/services/proto/google/protobuf/empty.pb.dart';
+import 'package:mobile/services/proto/google/protobuf/timestamp.pb.dart';
 import 'package:mobile/services/proto/parksense.pb.dart';
 
 class ParkSenseProviderImpl extends ViewModel implements ParkSenseProvider {
@@ -69,5 +71,70 @@ class ParkSenseProviderImpl extends ViewModel implements ParkSenseProvider {
   @override
   void unSubscrive(VoidCallback notifyListeners) {
     removeListener(notifyListeners);
+  }
+
+  @override
+  Future<List<ParkSet>> getAllParkSets() async {
+    try {
+      final response = await _parkSenseService.getAllParkSets();
+      return response.parkSets;
+    } catch (e) {
+      debugPrint("Error while fetching park sets: $e");
+      return [];
+    }
+  }
+
+  @override
+  Future<Reserve> createReserve(
+    String slotId,
+    String slotLabel,
+    DateTime date,
+  ) async {
+    try {
+      return await _parkSenseService.createReserve(
+        CreateReserveRequest(
+          slotId: slotId,
+          slotLabel: slotLabel,
+          timestamp: Timestamp.fromDateTime(date),
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error while creating reserve: $e");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Reserve>> getUserActiveReserves() async {
+    try {
+      final response = await _parkSenseService.getUserActiveReserves();
+      return response.reserves;
+    } catch (e) {
+      debugPrint("Error while fetching active reserves: $e");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ReserveHistory>> getUserReserveHistory() async {
+    try {
+      final response = await _parkSenseService.getUserReserveHistory();
+      return response.history;
+    } catch (e) {
+      debugPrint("Error while fetching reserve history: $e");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Empty> cancelReserve(String reserveId) async {
+    try {
+      return await _parkSenseService.cancelReserve(
+        CancelReserveRequest(reserveId: reserveId),
+      );
+    } catch (e) {
+      debugPrint("Error while canceling reserve: $e");
+      rethrow;
+    }
   }
 }

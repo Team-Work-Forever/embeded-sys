@@ -3,6 +3,7 @@ import 'package:mobile/core/providers/auth_provider.dart';
 import 'package:mobile/services/base_service.dart';
 import 'package:mobile/services/parksense/park_sense_service.dart';
 import 'package:mobile/services/proto/google/protobuf/empty.pb.dart';
+import 'package:mobile/services/proto/parksense.pb.dart';
 import 'package:mobile/services/proto/parksense.pbgrpc.dart';
 
 final class ParkSenseServiceImpl extends BaseService<ParkSenseServiceClient>
@@ -11,13 +12,44 @@ final class ParkSenseServiceImpl extends BaseService<ParkSenseServiceClient>
 
   ParkSenseServiceImpl(super.apiClient, this._authProvider);
 
+  Future<CallOptions> _withAuth() async {
+    final accessToken = await _authProvider.getAccessToken();
+    return CallOptions(metadata: {'authorization': '$accessToken'});
+  }
+
   @override
   Stream<ParkSet> streamIncomingParkLot() async* {
-    var accessToken = await _authProvider.getAccessToken();
+    final options = await _withAuth();
+    yield* client.streamIncomingParkLot(Empty(), options: options);
+  }
 
-    yield* client.streamIncomingParkLot(
-      Empty(),
-      options: CallOptions(metadata: {"authorization": accessToken}),
-    );
+  @override
+  Future<ParkSetListResponse> getAllParkSets() async {
+    final options = await _withAuth();
+    return client.getAllParkSets(Empty(), options: options);
+  }
+
+  @override
+  Future<Reserve> createReserve(CreateReserveRequest request) async {
+    final options = await _withAuth();
+    return client.createReserve(request, options: options);
+  }
+
+  @override
+  Future<ReserveListResponse> getUserActiveReserves() async {
+    final options = await _withAuth();
+    return client.getUserActiveReserves(Empty(), options: options);
+  }
+
+  @override
+  Future<ReserveHistoryListResponse> getUserReserveHistory() async {
+    final options = await _withAuth();
+    return client.getUserReserveHistory(Empty(), options: options);
+  }
+
+  @override
+  Future<Empty> cancelReserve(CancelReserveRequest request) async {
+    final options = await _withAuth();
+    return client.cancelReserve(request, options: options);
   }
 }

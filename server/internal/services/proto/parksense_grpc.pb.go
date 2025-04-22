@@ -35,8 +35,8 @@ type ParkSenseServiceClient interface {
 	StreamIncomingParkLot(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ParkSet], error)
 	GetAllParkSets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ParkSetListResponse, error)
 	CreateReserve(ctx context.Context, in *CreateReserveRequest, opts ...grpc.CallOption) (*Reserve, error)
-	GetUserActiveReserves(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*ReserveListResponse, error)
-	GetUserReserveHistory(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*ReserveHistoryListResponse, error)
+	GetUserActiveReserves(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ReserveListResponse, error)
+	GetUserReserveHistory(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ReserveHistoryListResponse, error)
 	CancelReserve(ctx context.Context, in *CancelReserveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -87,7 +87,7 @@ func (c *parkSenseServiceClient) CreateReserve(ctx context.Context, in *CreateRe
 	return out, nil
 }
 
-func (c *parkSenseServiceClient) GetUserActiveReserves(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*ReserveListResponse, error) {
+func (c *parkSenseServiceClient) GetUserActiveReserves(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ReserveListResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ReserveListResponse)
 	err := c.cc.Invoke(ctx, ParkSenseService_GetUserActiveReserves_FullMethodName, in, out, cOpts...)
@@ -97,7 +97,7 @@ func (c *parkSenseServiceClient) GetUserActiveReserves(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *parkSenseServiceClient) GetUserReserveHistory(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*ReserveHistoryListResponse, error) {
+func (c *parkSenseServiceClient) GetUserReserveHistory(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ReserveHistoryListResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ReserveHistoryListResponse)
 	err := c.cc.Invoke(ctx, ParkSenseService_GetUserReserveHistory_FullMethodName, in, out, cOpts...)
@@ -124,8 +124,8 @@ type ParkSenseServiceServer interface {
 	StreamIncomingParkLot(*emptypb.Empty, grpc.ServerStreamingServer[ParkSet]) error
 	GetAllParkSets(context.Context, *emptypb.Empty) (*ParkSetListResponse, error)
 	CreateReserve(context.Context, *CreateReserveRequest) (*Reserve, error)
-	GetUserActiveReserves(context.Context, *GetUserRequest) (*ReserveListResponse, error)
-	GetUserReserveHistory(context.Context, *GetUserRequest) (*ReserveHistoryListResponse, error)
+	GetUserActiveReserves(context.Context, *emptypb.Empty) (*ReserveListResponse, error)
+	GetUserReserveHistory(context.Context, *emptypb.Empty) (*ReserveHistoryListResponse, error)
 	CancelReserve(context.Context, *CancelReserveRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedParkSenseServiceServer()
 }
@@ -146,10 +146,10 @@ func (UnimplementedParkSenseServiceServer) GetAllParkSets(context.Context, *empt
 func (UnimplementedParkSenseServiceServer) CreateReserve(context.Context, *CreateReserveRequest) (*Reserve, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateReserve not implemented")
 }
-func (UnimplementedParkSenseServiceServer) GetUserActiveReserves(context.Context, *GetUserRequest) (*ReserveListResponse, error) {
+func (UnimplementedParkSenseServiceServer) GetUserActiveReserves(context.Context, *emptypb.Empty) (*ReserveListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserActiveReserves not implemented")
 }
-func (UnimplementedParkSenseServiceServer) GetUserReserveHistory(context.Context, *GetUserRequest) (*ReserveHistoryListResponse, error) {
+func (UnimplementedParkSenseServiceServer) GetUserReserveHistory(context.Context, *emptypb.Empty) (*ReserveHistoryListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserReserveHistory not implemented")
 }
 func (UnimplementedParkSenseServiceServer) CancelReserve(context.Context, *CancelReserveRequest) (*emptypb.Empty, error) {
@@ -224,7 +224,7 @@ func _ParkSenseService_CreateReserve_Handler(srv interface{}, ctx context.Contex
 }
 
 func _ParkSenseService_GetUserActiveReserves_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -236,13 +236,13 @@ func _ParkSenseService_GetUserActiveReserves_Handler(srv interface{}, ctx contex
 		FullMethod: ParkSenseService_GetUserActiveReserves_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ParkSenseServiceServer).GetUserActiveReserves(ctx, req.(*GetUserRequest))
+		return srv.(ParkSenseServiceServer).GetUserActiveReserves(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ParkSenseService_GetUserReserveHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserRequest)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func _ParkSenseService_GetUserReserveHistory_Handler(srv interface{}, ctx contex
 		FullMethod: ParkSenseService_GetUserReserveHistory_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ParkSenseServiceServer).GetUserReserveHistory(ctx, req.(*GetUserRequest))
+		return srv.(ParkSenseServiceServer).GetUserReserveHistory(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

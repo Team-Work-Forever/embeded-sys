@@ -26,7 +26,7 @@ final class AddReserveView extends LinearView<AddReserveViewModel> {
     var modalText = LocaleContext.get().add_reserve_confirm_reserve;
     ReserveItem card = ReserveItem(
       id: parkLot.id,
-      slotId: parkLot.slotId,
+      slotId: parkLot.id,
       date: viewModel.getValue(FormFieldValues.date).value,
       slot: parkLot.slot!,
     );

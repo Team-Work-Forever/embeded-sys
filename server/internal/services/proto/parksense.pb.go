@@ -261,8 +261,9 @@ type Reserve struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ReserveId     string                 `protobuf:"bytes,1,opt,name=reserve_id,json=reserveId,proto3" json:"reserve_id,omitempty"`
 	SlotId        string                 `protobuf:"bytes,2,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	SlotLabel     string                 `protobuf:"bytes,3,opt,name=slot_label,json=slotLabel,proto3" json:"slot_label,omitempty"`
+	UserId        string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -311,6 +312,13 @@ func (x *Reserve) GetSlotId() string {
 	return ""
 }
 
+func (x *Reserve) GetSlotLabel() string {
+	if x != nil {
+		return x.SlotLabel
+	}
+	return ""
+}
+
 func (x *Reserve) GetUserId() string {
 	if x != nil {
 		return x.UserId
@@ -329,9 +337,10 @@ type ReserveHistory struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	ReserveHistoryId string                 `protobuf:"bytes,1,opt,name=reserve_history_id,json=reserveHistoryId,proto3" json:"reserve_history_id,omitempty"`
 	SlotId           string                 `protobuf:"bytes,2,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
-	UserId           string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	TimestampBegin   *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=timestamp_begin,json=timestampBegin,proto3" json:"timestamp_begin,omitempty"`
-	TimestampEnd     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp_end,json=timestampEnd,proto3" json:"timestamp_end,omitempty"`
+	SlotLabel        string                 `protobuf:"bytes,3,opt,name=slot_label,json=slotLabel,proto3" json:"slot_label,omitempty"`
+	UserId           string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	TimestampBegin   *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp_begin,json=timestampBegin,proto3" json:"timestamp_begin,omitempty"`
+	TimestampEnd     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=timestamp_end,json=timestampEnd,proto3" json:"timestamp_end,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -380,6 +389,13 @@ func (x *ReserveHistory) GetSlotId() string {
 	return ""
 }
 
+func (x *ReserveHistory) GetSlotLabel() string {
+	if x != nil {
+		return x.SlotLabel
+	}
+	return ""
+}
+
 func (x *ReserveHistory) GetUserId() string {
 	if x != nil {
 		return x.UserId
@@ -403,7 +419,8 @@ func (x *ReserveHistory) GetTimestampEnd() *timestamppb.Timestamp {
 
 type CreateReserveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SlotId        string                 `protobuf:"bytes,2,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
+	SlotId        string                 `protobuf:"bytes,1,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
+	SlotLabel     string                 `protobuf:"bytes,2,opt,name=slot_label,json=slotLabel,proto3" json:"slot_label,omitempty"`
 	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -446,47 +463,18 @@ func (x *CreateReserveRequest) GetSlotId() string {
 	return ""
 }
 
+func (x *CreateReserveRequest) GetSlotLabel() string {
+	if x != nil {
+		return x.SlotLabel
+	}
+	return ""
+}
+
 func (x *CreateReserveRequest) GetTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.Timestamp
 	}
 	return nil
-}
-
-type GetUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetUserRequest) Reset() {
-	*x = GetUserRequest{}
-	mi := &file_parksense_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetUserRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetUserRequest) ProtoMessage() {}
-
-func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parksense_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
-func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_parksense_proto_rawDescGZIP(), []int{5}
 }
 
 type CancelReserveRequest struct {
@@ -498,7 +486,7 @@ type CancelReserveRequest struct {
 
 func (x *CancelReserveRequest) Reset() {
 	*x = CancelReserveRequest{}
-	mi := &file_parksense_proto_msgTypes[6]
+	mi := &file_parksense_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -510,7 +498,7 @@ func (x *CancelReserveRequest) String() string {
 func (*CancelReserveRequest) ProtoMessage() {}
 
 func (x *CancelReserveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parksense_proto_msgTypes[6]
+	mi := &file_parksense_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -523,7 +511,7 @@ func (x *CancelReserveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelReserveRequest.ProtoReflect.Descriptor instead.
 func (*CancelReserveRequest) Descriptor() ([]byte, []int) {
-	return file_parksense_proto_rawDescGZIP(), []int{6}
+	return file_parksense_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CancelReserveRequest) GetReserveId() string {
@@ -542,7 +530,7 @@ type ParkSetListResponse struct {
 
 func (x *ParkSetListResponse) Reset() {
 	*x = ParkSetListResponse{}
-	mi := &file_parksense_proto_msgTypes[7]
+	mi := &file_parksense_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -554,7 +542,7 @@ func (x *ParkSetListResponse) String() string {
 func (*ParkSetListResponse) ProtoMessage() {}
 
 func (x *ParkSetListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parksense_proto_msgTypes[7]
+	mi := &file_parksense_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -567,7 +555,7 @@ func (x *ParkSetListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ParkSetListResponse.ProtoReflect.Descriptor instead.
 func (*ParkSetListResponse) Descriptor() ([]byte, []int) {
-	return file_parksense_proto_rawDescGZIP(), []int{7}
+	return file_parksense_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ParkSetListResponse) GetParkSets() []*ParkSet {
@@ -586,7 +574,7 @@ type ReserveHistoryListResponse struct {
 
 func (x *ReserveHistoryListResponse) Reset() {
 	*x = ReserveHistoryListResponse{}
-	mi := &file_parksense_proto_msgTypes[8]
+	mi := &file_parksense_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -598,7 +586,7 @@ func (x *ReserveHistoryListResponse) String() string {
 func (*ReserveHistoryListResponse) ProtoMessage() {}
 
 func (x *ReserveHistoryListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parksense_proto_msgTypes[8]
+	mi := &file_parksense_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -611,7 +599,7 @@ func (x *ReserveHistoryListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReserveHistoryListResponse.ProtoReflect.Descriptor instead.
 func (*ReserveHistoryListResponse) Descriptor() ([]byte, []int) {
-	return file_parksense_proto_rawDescGZIP(), []int{8}
+	return file_parksense_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ReserveHistoryListResponse) GetHistory() []*ReserveHistory {
@@ -630,7 +618,7 @@ type ReserveListResponse struct {
 
 func (x *ReserveListResponse) Reset() {
 	*x = ReserveListResponse{}
-	mi := &file_parksense_proto_msgTypes[9]
+	mi := &file_parksense_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -642,7 +630,7 @@ func (x *ReserveListResponse) String() string {
 func (*ReserveListResponse) ProtoMessage() {}
 
 func (x *ReserveListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parksense_proto_msgTypes[9]
+	mi := &file_parksense_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -655,7 +643,7 @@ func (x *ReserveListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReserveListResponse.ProtoReflect.Descriptor instead.
 func (*ReserveListResponse) Descriptor() ([]byte, []int) {
-	return file_parksense_proto_rawDescGZIP(), []int{9}
+	return file_parksense_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ReserveListResponse) GetReserves() []*Reserve {
@@ -679,23 +667,28 @@ const file_parksense_proto_rawDesc = "" +
 	"\vpark_set_id\x18\x01 \x01(\tR\tparkSetId\x12&\n" +
 	"\x04lots\x18\x02 \x03(\v2\x12.parksense.ParkLotR\x04lots\x12*\n" +
 	"\x05state\x18\x03 \x01(\x0e2\x14.parksense.ParkStateR\x05state\x128\n" +
-	"\ttimestamp\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\x94\x01\n" +
+	"\ttimestamp\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xb3\x01\n" +
 	"\aReserve\x12\x1d\n" +
 	"\n" +
 	"reserve_id\x18\x01 \x01(\tR\treserveId\x12\x17\n" +
-	"\aslot_id\x18\x02 \x01(\tR\x06slotId\x12\x17\n" +
-	"\auser_id\x18\x03 \x01(\tR\x06userId\x128\n" +
-	"\ttimestamp\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\xf6\x01\n" +
+	"\aslot_id\x18\x02 \x01(\tR\x06slotId\x12\x1d\n" +
+	"\n" +
+	"slot_label\x18\x03 \x01(\tR\tslotLabel\x12\x17\n" +
+	"\auser_id\x18\x04 \x01(\tR\x06userId\x128\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\x95\x02\n" +
 	"\x0eReserveHistory\x12,\n" +
 	"\x12reserve_history_id\x18\x01 \x01(\tR\x10reserveHistoryId\x12\x17\n" +
-	"\aslot_id\x18\x02 \x01(\tR\x06slotId\x12\x17\n" +
-	"\auser_id\x18\x03 \x01(\tR\x06userId\x12C\n" +
-	"\x0ftimestamp_begin\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x0etimestampBegin\x12?\n" +
-	"\rtimestamp_end\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ftimestampEnd\"i\n" +
+	"\aslot_id\x18\x02 \x01(\tR\x06slotId\x12\x1d\n" +
+	"\n" +
+	"slot_label\x18\x03 \x01(\tR\tslotLabel\x12\x17\n" +
+	"\auser_id\x18\x04 \x01(\tR\x06userId\x12C\n" +
+	"\x0ftimestamp_begin\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\x0etimestampBegin\x12?\n" +
+	"\rtimestamp_end\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ftimestampEnd\"\x88\x01\n" +
 	"\x14CreateReserveRequest\x12\x17\n" +
-	"\aslot_id\x18\x02 \x01(\tR\x06slotId\x128\n" +
-	"\ttimestamp\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"\x10\n" +
-	"\x0eGetUserRequest\"5\n" +
+	"\aslot_id\x18\x01 \x01(\tR\x06slotId\x12\x1d\n" +
+	"\n" +
+	"slot_label\x18\x02 \x01(\tR\tslotLabel\x128\n" +
+	"\ttimestamp\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"5\n" +
 	"\x14CancelReserveRequest\x12\x1d\n" +
 	"\n" +
 	"reserve_id\x18\x01 \x01(\tR\treserveId\"F\n" +
@@ -713,13 +706,13 @@ const file_parksense_proto_rawDesc = "" +
 	"\tParkState\x12\n" +
 	"\n" +
 	"\x06NORMAL\x10\x00\x12\b\n" +
-	"\x04FIRE\x10\x012\xe2\x03\n" +
+	"\x04FIRE\x10\x012\xdc\x03\n" +
 	"\x10ParkSenseService\x12E\n" +
 	"\x15StreamIncomingParkLot\x12\x16.google.protobuf.Empty\x1a\x12.parksense.ParkSet0\x01\x12H\n" +
 	"\x0eGetAllParkSets\x12\x16.google.protobuf.Empty\x1a\x1e.parksense.ParkSetListResponse\x12D\n" +
-	"\rCreateReserve\x12\x1f.parksense.CreateReserveRequest\x1a\x12.parksense.Reserve\x12R\n" +
-	"\x15GetUserActiveReserves\x12\x19.parksense.GetUserRequest\x1a\x1e.parksense.ReserveListResponse\x12Y\n" +
-	"\x15GetUserReserveHistory\x12\x19.parksense.GetUserRequest\x1a%.parksense.ReserveHistoryListResponse\x12H\n" +
+	"\rCreateReserve\x12\x1f.parksense.CreateReserveRequest\x1a\x12.parksense.Reserve\x12O\n" +
+	"\x15GetUserActiveReserves\x12\x16.google.protobuf.Empty\x1a\x1e.parksense.ReserveListResponse\x12V\n" +
+	"\x15GetUserReserveHistory\x12\x16.google.protobuf.Empty\x1a%.parksense.ReserveHistoryListResponse\x12H\n" +
 	"\rCancelReserve\x12\x1f.parksense.CancelReserveRequest\x1a\x16.google.protobuf.EmptyB\x1bZ\x19./internal/services/protob\x06proto3"
 
 var (
@@ -735,7 +728,7 @@ func file_parksense_proto_rawDescGZIP() []byte {
 }
 
 var file_parksense_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_parksense_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_parksense_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_parksense_proto_goTypes = []any{
 	(LotState)(0),                      // 0: parksense.LotState
 	(ParkState)(0),                     // 1: parksense.ParkState
@@ -744,38 +737,37 @@ var file_parksense_proto_goTypes = []any{
 	(*Reserve)(nil),                    // 4: parksense.Reserve
 	(*ReserveHistory)(nil),             // 5: parksense.ReserveHistory
 	(*CreateReserveRequest)(nil),       // 6: parksense.CreateReserveRequest
-	(*GetUserRequest)(nil),             // 7: parksense.GetUserRequest
-	(*CancelReserveRequest)(nil),       // 8: parksense.CancelReserveRequest
-	(*ParkSetListResponse)(nil),        // 9: parksense.ParkSetListResponse
-	(*ReserveHistoryListResponse)(nil), // 10: parksense.ReserveHistoryListResponse
-	(*ReserveListResponse)(nil),        // 11: parksense.ReserveListResponse
-	(*timestamppb.Timestamp)(nil),      // 12: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),              // 13: google.protobuf.Empty
+	(*CancelReserveRequest)(nil),       // 7: parksense.CancelReserveRequest
+	(*ParkSetListResponse)(nil),        // 8: parksense.ParkSetListResponse
+	(*ReserveHistoryListResponse)(nil), // 9: parksense.ReserveHistoryListResponse
+	(*ReserveListResponse)(nil),        // 10: parksense.ReserveListResponse
+	(*timestamppb.Timestamp)(nil),      // 11: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),              // 12: google.protobuf.Empty
 }
 var file_parksense_proto_depIdxs = []int32{
 	0,  // 0: parksense.ParkLot.state:type_name -> parksense.LotState
 	2,  // 1: parksense.ParkSet.lots:type_name -> parksense.ParkLot
 	1,  // 2: parksense.ParkSet.state:type_name -> parksense.ParkState
-	12, // 3: parksense.ParkSet.timestamp:type_name -> google.protobuf.Timestamp
-	12, // 4: parksense.Reserve.timestamp:type_name -> google.protobuf.Timestamp
-	12, // 5: parksense.ReserveHistory.timestamp_begin:type_name -> google.protobuf.Timestamp
-	12, // 6: parksense.ReserveHistory.timestamp_end:type_name -> google.protobuf.Timestamp
-	12, // 7: parksense.CreateReserveRequest.timestamp:type_name -> google.protobuf.Timestamp
+	11, // 3: parksense.ParkSet.timestamp:type_name -> google.protobuf.Timestamp
+	11, // 4: parksense.Reserve.timestamp:type_name -> google.protobuf.Timestamp
+	11, // 5: parksense.ReserveHistory.timestamp_begin:type_name -> google.protobuf.Timestamp
+	11, // 6: parksense.ReserveHistory.timestamp_end:type_name -> google.protobuf.Timestamp
+	11, // 7: parksense.CreateReserveRequest.timestamp:type_name -> google.protobuf.Timestamp
 	3,  // 8: parksense.ParkSetListResponse.park_sets:type_name -> parksense.ParkSet
 	5,  // 9: parksense.ReserveHistoryListResponse.history:type_name -> parksense.ReserveHistory
 	4,  // 10: parksense.ReserveListResponse.reserves:type_name -> parksense.Reserve
-	13, // 11: parksense.ParkSenseService.StreamIncomingParkLot:input_type -> google.protobuf.Empty
-	13, // 12: parksense.ParkSenseService.GetAllParkSets:input_type -> google.protobuf.Empty
+	12, // 11: parksense.ParkSenseService.StreamIncomingParkLot:input_type -> google.protobuf.Empty
+	12, // 12: parksense.ParkSenseService.GetAllParkSets:input_type -> google.protobuf.Empty
 	6,  // 13: parksense.ParkSenseService.CreateReserve:input_type -> parksense.CreateReserveRequest
-	7,  // 14: parksense.ParkSenseService.GetUserActiveReserves:input_type -> parksense.GetUserRequest
-	7,  // 15: parksense.ParkSenseService.GetUserReserveHistory:input_type -> parksense.GetUserRequest
-	8,  // 16: parksense.ParkSenseService.CancelReserve:input_type -> parksense.CancelReserveRequest
+	12, // 14: parksense.ParkSenseService.GetUserActiveReserves:input_type -> google.protobuf.Empty
+	12, // 15: parksense.ParkSenseService.GetUserReserveHistory:input_type -> google.protobuf.Empty
+	7,  // 16: parksense.ParkSenseService.CancelReserve:input_type -> parksense.CancelReserveRequest
 	3,  // 17: parksense.ParkSenseService.StreamIncomingParkLot:output_type -> parksense.ParkSet
-	9,  // 18: parksense.ParkSenseService.GetAllParkSets:output_type -> parksense.ParkSetListResponse
+	8,  // 18: parksense.ParkSenseService.GetAllParkSets:output_type -> parksense.ParkSetListResponse
 	4,  // 19: parksense.ParkSenseService.CreateReserve:output_type -> parksense.Reserve
-	11, // 20: parksense.ParkSenseService.GetUserActiveReserves:output_type -> parksense.ReserveListResponse
-	10, // 21: parksense.ParkSenseService.GetUserReserveHistory:output_type -> parksense.ReserveHistoryListResponse
-	13, // 22: parksense.ParkSenseService.CancelReserve:output_type -> google.protobuf.Empty
+	10, // 20: parksense.ParkSenseService.GetUserActiveReserves:output_type -> parksense.ReserveListResponse
+	9,  // 21: parksense.ParkSenseService.GetUserReserveHistory:output_type -> parksense.ReserveHistoryListResponse
+	12, // 22: parksense.ParkSenseService.CancelReserve:output_type -> google.protobuf.Empty
 	17, // [17:23] is the sub-list for method output_type
 	11, // [11:17] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
@@ -794,7 +786,7 @@ func file_parksense_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parksense_proto_rawDesc), len(file_parksense_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   10,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
