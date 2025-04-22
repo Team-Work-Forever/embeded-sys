@@ -97,7 +97,7 @@ final class HomeView extends LinearView<HomeViewModel> {
       });
     }
 
-    if (!hasFire) {
+    if (!hasFire && viewModel.modalShow) {
       viewModel.changeModalShow();
     }
   }
