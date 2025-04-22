@@ -147,6 +147,7 @@ final class HomeView extends LinearView<HomeViewModel> {
       ),
       body: Stack(
         children: [
+          SizedBox(width: double.infinity, height: double.infinity),
           (viewModel.isList) ? _buildList() : _buildMatriz(),
           _buildChangeLayoutButton(),
           _buildScheduleButton(),

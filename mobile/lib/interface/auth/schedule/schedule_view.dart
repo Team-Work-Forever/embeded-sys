@@ -147,6 +147,7 @@ final class ScheduleView extends LinearView<ScheduleViewModel> {
       ),
       body: Stack(
         children: [
+          SizedBox(width: double.infinity, height: double.infinity),
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(
