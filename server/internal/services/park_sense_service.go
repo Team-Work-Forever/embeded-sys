@@ -232,6 +232,10 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 		return nil, status.Error(codes.NotFound, "Reserve not found")
 	}
 
+	if reserve.UserId != user.ID {
+		return nil, status.Error(codes.PermissionDenied, "You do not own this reservation")
+	}
+
 	parkLot, err := s.parkSenseRepo.GetLotByPublicId(reserve.SlotId)
 
 	if err != nil {
