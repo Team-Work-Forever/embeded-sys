@@ -7,7 +7,6 @@ import (
 	"server/internal/middlewares"
 	"server/internal/repositories"
 	"server/internal/services/proto"
-	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -132,6 +131,13 @@ func (s *ParkSenseServiceImpl) CreateReserve(ctx context.Context, req *proto.Cre
 		return nil, status.Error(codes.Internal, "Could not create reserve")
 	}
 
+	parkLot.State = domain.Reserved
+
+	if err := s.parkSenseRepo.UpdateLot(parkLot); err != nil {
+		log.Printf("Failed to update lot state: %v", err)
+		return nil, status.Error(codes.Internal, "Could not update parking slot state")
+	}
+
 	return &proto.Reserve{
 		ReserveId: reserve.PublicId,
 		SlotId:    reserve.SlotId,
@@ -230,16 +236,17 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 		return nil, status.Error(codes.PermissionDenied, "You do not own this reservation")
 	}
 
-	history := &domain.ReserveHistory{
-		SlotId:         reserve.SlotId,
-		SlotLabel:      reserve.SlotLabel,
-		UserId:         user.ID,
-		TimestampBegin: reserve.Timestamp,
-		TimestampEnd:   time.Now(),
+	parkLot, err := s.parkSenseRepo.GetLotByPublicId(reserve.SlotId)
+
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "Parking slot not found")
 	}
 
-	if err := s.reserveHistoryRepo.Create(history); err != nil {
-		return nil, status.Error(codes.Internal, "Failed to archive reservation")
+	parkLot.State = domain.Free
+
+	if err := s.parkSenseRepo.UpdateLot(parkLot); err != nil {
+		log.Printf("Failed to update lot state: %v", err)
+		return nil, status.Error(codes.Internal, "Could not update parking slot state")
 	}
 
 	if err := s.reserveRepo.Delete(reserve); err != nil {
