@@ -15,6 +15,7 @@ type (
 
 		GetAllParkSets() ([]*domain.ParkSet, error)
 		GetLotByPublicId(publicId string) (*domain.ParkLot, error)
+		UpdateLot(lot *domain.ParkLot) error
 	}
 )
 
@@ -40,4 +41,8 @@ func (pr *ParkSetRepository) GetLotByPublicId(publicId string) (*domain.ParkLot,
 		return nil, err
 	}
 	return &lot, nil
+}
+
+func (pr *ParkSetRepository) UpdateLot(lot *domain.ParkLot) error {
+	return pr.Context.Statement.Save(lot).Error
 }
