@@ -245,10 +245,6 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 		return nil, status.Error(codes.Internal, "Could not update parking slot state")
 	}
 
-	if reserve.UserId != user.ID {
-		return nil, status.Error(codes.PermissionDenied, "You do not own this reservation")
-	}
-
 	if err := s.reserveRepo.Delete(reserve); err != nil {
 		return nil, status.Error(codes.Internal, "Failed to cancel reservation")
 	}
