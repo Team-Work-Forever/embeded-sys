@@ -67,22 +67,22 @@ func main() {
 
 	defer grpcServer.Close()
 
-	// http server
-	// Start an http server (alpine.js, htmx)
-	httpServer := adapters.NewHttpServer()
-	defer httpServer.Close()
-
-	endpoints, err := internal.NewEndpoints(globalState)
-
-	if err != nil {
-		panic(err)
-	}
-
 	// repositories
 	authRepository := repositories.NewAuthRepository(db)
 	parkSetRepository := repositories.NewParkSetRepository(db)
 	reserveRepository := repositories.NewReserveRepository(db)
 	reserveHistoryRepository := repositories.NewReserveHistoryRepository(db)
+
+	// http server
+	// Start an http server (alpine.js, htmx)
+	httpServer := adapters.NewHttpServer()
+	defer httpServer.Close()
+
+	endpoints, err := internal.NewEndpoints(globalState, parkSetRepository)
+
+	if err != nil {
+		panic(err)
+	}
 
 	// bluetooth client
 	bluetoothServer := adapters.NewBluetoothServer(globalState, parkSetRepository)

@@ -3,6 +3,7 @@
         "cupertino",
         "dotenv",
         "emptypb",
+        "parksets",
         "timestamppb"
     ]
 }

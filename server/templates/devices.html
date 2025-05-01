@@ -1,5 +1,11 @@
-{{ range .Modules }}
-<div class="arduino-module">
-  <h1>{{ .State }}</h1>
+{{ range .Sections }}
+<div class="section" data-index="{{ .Index }}">
+  <h2>Section {{ .Index }}</h2>
+  {{ range .Lots }}
+  <div class="module" data-id="{{ .ID }}" data-state="{{ .State }}" {{- if .Row }} data-row="{{ .Row }}" {{ end }} {{-
+    if .Column }} data-col="{{ .Column }}" {{ end }}>
+    {{ .ID }}
+  </div>
+  {{ end }}
 </div>
 {{ end }}
