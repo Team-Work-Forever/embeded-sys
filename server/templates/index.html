@@ -1,24 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+  <title>Car Park Manager</title>
   <link rel="stylesheet" href="/static/styles.css">
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 
 <body>
   <div class="app-container">
-    <div class="matrix-container">
-      <h1>Matrix Place</h1>
+
+    <div class="matrix-wrapper">
+      <h1>Car Park Matrix</h1>
+      <button id="add-col" class="add-button col">＋</button>
+      <button id="add-row" class="add-button row">＋</button>
+      <button id="save-changes" class="save-changes"
+        style="position:absolute; top:16px; left:16px; padding:8px 12px; font-size:1rem; border-radius:4px;">
+        Save changes
+      </button>
+      <div class="matrix-scroll">
+        <div id="matrix" class="matrix"></div>
+      </div>
     </div>
-    <div id="device-list" hx-get="/devices" hx-trigger="load, every 5s" hx-swap="innerHTML" class="side-bar">
-      <!-- is added each item from the template devices.html -->
+
+    <div class="side-bar">
+      <h1>Car Park Manager</h1>
+      <p>Drag the spaces from each section onto the matrix</p>
+      <div id="device-list" class="sections"></div>
     </div>
+
   </div>
+
+  <script src="/static/js/script.js"></script>
 </body>
 
 </html>
