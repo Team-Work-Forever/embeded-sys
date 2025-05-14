@@ -1,0 +1,15 @@
+.pio/
+.vscode/
+libdeps/
+test/
+build/
+*.elf
+*.bin
+*.hex
+*.o
+*.d
+*.core
+.DS_Store
+Thumbs.db
+*.bak
+*.swp
