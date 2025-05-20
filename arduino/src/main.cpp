@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-#include "./logic/park_manager.h"
+#include "logic/park_manager.h"
 #include "logic/bluetoothCommandHandler.h"
 
 #define SET_BT_NAME false
@@ -38,12 +38,12 @@ void setup()
 void loop()
 {
   manager.update();
-
+  
   if (BT.available())
   {
     String command = BT.readStringUntil('\n');
     BluetoothCommandHandler::handle(command, manager, BT);
   }
-
+  
   delay(150);
 }
