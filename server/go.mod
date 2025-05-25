@@ -8,6 +8,7 @@ require (
 	github.com/oklog/ulid v1.3.1
 	github.com/pressly/goose/v3 v3.24.2
 	github.com/spf13/viper v1.20.1
+	go.bug.st/serial v1.6.4
 	google.golang.org/grpc v1.71.1
 	google.golang.org/protobuf v1.36.6
 	gorm.io/driver/sqlite v1.5.7
@@ -16,6 +17,7 @@ require (
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/creack/goselect v0.1.3 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 )
 
