@@ -15,7 +15,7 @@ int numSpots = sizeof(spots) / sizeof(spots[0]);
 
 SoftwareSerial BT(12, 13);
 BluetoothTransmitter bt(BT);
-ParkManager manager(tempSensor, spots, numSpots, bt);
+ParkManager manager(tempSensor, spots, numSpots);
 
 void setup()
 {
@@ -38,12 +38,12 @@ void setup()
 void loop()
 {
   manager.update();
-  
+
   if (BT.available())
   {
     String command = BT.readStringUntil('\n');
     BluetoothCommandHandler::handle(command, manager, BT);
   }
-  
+
   delay(150);
 }

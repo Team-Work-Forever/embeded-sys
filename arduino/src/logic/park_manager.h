@@ -10,14 +10,13 @@ class ParkManager
 private:
     TempSensor temp;
     ParkingSpot *spots;
-    BluetoothTransmitter bt;
     int numSpots;
     String statusMessage = "";
 
 public:
-    ParkManager(TempSensor t, ParkingSpot *s, int count, BluetoothTransmitter b)
+    ParkManager(TempSensor t, ParkingSpot *s, int count)
         : temp(t),
-          spots(s), bt(b), numSpots(count)
+          spots(s), numSpots(count)
     {
     }
 
@@ -69,7 +68,6 @@ public:
         }
 
         statusMessage = statusMessage;
-        bt.send(statusMessage);
     }
 
     String getStatus()
