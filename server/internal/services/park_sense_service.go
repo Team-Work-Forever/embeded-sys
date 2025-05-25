@@ -7,6 +7,7 @@ import (
 	"server/internal/middlewares"
 	"server/internal/repositories"
 	"server/internal/services/proto"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -254,6 +255,37 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 	}
 
 	return &emptypb.Empty{}, nil
+}
+
+func (s *ParkSenseServiceImpl) FinalizeReservationBySlotId(slotId string) {
+	reserve, err := s.reserveRepo.GetByPublicId(slotId)
+	if err != nil || reserve == nil {
+		log.Printf("No active reservation to finalize for slot %s", slotId)
+		return
+	}
+
+	_ = s.reserveRepo.Delete(reserve)
+
+	_ = s.reserveHistoryRepo.Create(&domain.ReserveHistory{
+		SlotId:         reserve.SlotId,
+		SlotLabel:      reserve.SlotLabel,
+		UserId:         reserve.UserId,
+		TimestampBegin: reserve.Timestamp,
+		TimestampEnd:   time.Now(),
+	})
+
+	log.Printf("Reservation finalized and moved to history for slot %s", slotId)
+}
+
+func (s *ParkSenseServiceImpl) CancelReservationBySlotId(slotId string) {
+	reserve, err := s.reserveRepo.GetByPublicId(slotId)
+	if err != nil || reserve == nil {
+		log.Printf("No active reservation to cancel for slot %s", slotId)
+		return
+	}
+
+	_ = s.reserveRepo.Delete(reserve)
+	log.Printf("Reservation cancelled for slot %s", slotId)
 }
 
 func (s *ParkSenseServiceImpl) GetAllParkSets(ctx context.Context, _ *emptypb.Empty) (*proto.ParkSetListResponse, error) {
