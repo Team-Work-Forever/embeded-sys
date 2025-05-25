@@ -6,6 +6,7 @@ import (
 	"os"
 	"server/internal/domain"
 	"server/internal/repositories"
+	"server/internal/services"
 	"strings"
 	"time"
 
@@ -17,13 +18,15 @@ type (
 	BluetoothServer struct {
 		deviceStore domain.DeviceStore
 		parkSetRepo repositories.IParkSetRepository
+		service     *services.ParkSenseServiceImpl
 	}
 )
 
-func NewBluetoothServer(deviceStore domain.DeviceStore, parkSetRepo repositories.IParkSetRepository) *BluetoothServer {
+func NewBluetoothServer(deviceStore domain.DeviceStore, parkSetRepo repositories.IParkSetRepository, service *services.ParkSenseServiceImpl) *BluetoothServer {
 	return &BluetoothServer{
 		deviceStore: deviceStore,
 		parkSetRepo: parkSetRepo,
+		service:     service,
 	}
 }
 
@@ -97,10 +100,10 @@ func ReadBluetoothResponse(id string) (string, error) {
 	return string(buf[:n]), nil
 }
 
-func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, error) {
+func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, []string, error) {
 	parts := strings.Split(resp, ";")
 	if len(parts) < 2 {
-		return 0, nil, fmt.Errorf("invalid answer: %s", resp)
+		return 0, nil, nil, fmt.Errorf("invalid answer: %s", resp)
 	}
 
 	var parkSetState domain.ParkState
@@ -110,13 +113,19 @@ func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, 
 	case "NORMAL":
 		parkSetState = domain.Normal
 	default:
-		return 0, nil, fmt.Errorf("unknown status: %s", parts[0])
+		return 0, nil, nil, fmt.Errorf("unknown status: %s", parts[0])
 	}
 
 	var lotStates []domain.ParkLotState
+	var rawStates []string
+
 	for _, s := range parts[1:] {
 		s = strings.TrimSpace(s)
-		switch s {
+		rawStates = append(rawStates, s)
+
+		base := strings.ToUpper(strings.SplitN(s, ":", 2)[0])
+
+		switch base {
 		case "FREE":
 			lotStates = append(lotStates, domain.Free)
 		case "OCCUPIED":
@@ -125,26 +134,23 @@ func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, 
 			lotStates = append(lotStates, domain.Reserved)
 		case "":
 		default:
-			return 0, nil, fmt.Errorf("slot status unknown: %s", s)
+			return 0, nil, nil, fmt.Errorf("slot status unknown: %s", s)
 		}
 	}
-	return parkSetState, lotStates, nil
+
+	return parkSetState, lotStates, rawStates, nil
 }
 
-func getDeviceStatus(portName string) (domain.ParkState, []domain.ParkLotState, error) {
+func getDeviceStatusWithRaw(portName string) (domain.ParkState, []domain.ParkLotState, []string, error) {
 	err := SendBluetoothMessage(portName, "GET STATUS")
 	if err != nil {
-		return 0, nil, fmt.Errorf("error sending GET STATUS to %s: %v", portName, err)
+		return 0, nil, nil, fmt.Errorf("error sending GET STATUS to %s: %v", portName, err)
 	}
 	resp, err := ReadBluetoothResponse(portName)
 	if err != nil {
-		return 0, nil, fmt.Errorf("error reading device response %s: %v", portName, err)
+		return 0, nil, nil, fmt.Errorf("error reading device response %s: %v", portName, err)
 	}
-	parkSetState, lotStates, err := parseStatusResponse(resp)
-	if err != nil {
-		return 0, nil, fmt.Errorf("error when parsing status: %v", err)
-	}
-	return parkSetState, lotStates, nil
+	return parseStatusResponse(resp)
 }
 
 func (blue *BluetoothServer) CreateParkSet() {
@@ -152,7 +158,7 @@ func (blue *BluetoothServer) CreateParkSet() {
 		if _, exists := portToParkSet[portName]; exists {
 			continue
 		}
-		parkSetState, lotStates, err := getDeviceStatus(portName)
+		parkSetState, lotStates, _, err := getDeviceStatusWithRaw(portName)
 		if err != nil {
 			log.Printf("Error obtaining device status %s: %v", portName, err)
 			continue
@@ -172,17 +178,39 @@ func (blue *BluetoothServer) CreateParkSet() {
 
 func (blue *BluetoothServer) UpdateParkSet() {
 	for portName, parkSet := range portToParkSet {
-		parkSetState, lotStates, err := getDeviceStatus(portName)
+		parkSetState, lotStates, rawStates, err := getDeviceStatusWithRaw(portName)
 		if err != nil {
 			log.Printf("Error obtaining device status %s: %v", portName, err)
 			continue
 		}
+
 		parkSet.State = parkSetState
+
 		for i, lotState := range lotStates {
-			if i < len(parkSet.Lots) {
-				parkSet.Lots[i].State = lotState
+			if i >= len(parkSet.Lots) {
+				continue
+			}
+
+			raw := strings.ToLower(rawStates[i])
+			base := strings.SplitN(raw, ":", 2)[0]
+			suffix := ""
+			if strings.Contains(raw, ":") {
+				suffix = strings.SplitN(raw, ":", 2)[1]
+			}
+
+			parkSet.Lots[i].State = lotState
+
+			if base == "free" {
+				switch suffix {
+				case "used":
+					blue.service.FinalizeReservationBySlotId(parkSet.Lots[i].PublicId)
+				case "expired":
+					blue.service.CancelReservationBySlotId(parkSet.Lots[i].PublicId)
+				}
+
 			}
 		}
+
 		if err := blue.parkSetRepo.Update(parkSet); err != nil {
 			log.Printf("Error updating ParkSet: %v", err)
 		}
@@ -236,7 +264,7 @@ func (blue *BluetoothServer) MonitorBluetoothDevices() {
 					bluetoothPorts[port.Name] = p
 					log.Printf("Connected to the port %s", port.Name)
 					if _, exists := portToParkSet[port.Name]; !exists {
-						parkSetState, lotStates, err := getDeviceStatus(port.Name)
+						parkSetState, lotStates, _, err := getDeviceStatusWithRaw(port.Name)
 						if err != nil {
 							log.Printf("Error obtaining device status %s: %v", port.Name, err)
 							continue
@@ -254,7 +282,7 @@ func (blue *BluetoothServer) MonitorBluetoothDevices() {
 					}
 				}
 				if parkSet, exists := portToParkSet[port.Name]; exists {
-					parkSetState, lotStates, err := getDeviceStatus(port.Name)
+					parkSetState, lotStates, _, err := getDeviceStatusWithRaw(port.Name)
 					if err != nil {
 						log.Printf("Error obtaining device status %s: %v", port.Name, err)
 						continue

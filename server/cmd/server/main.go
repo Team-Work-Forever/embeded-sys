@@ -84,13 +84,13 @@ func main() {
 		panic(err)
 	}
 
-	// bluetooth client
-	bluetoothServer := adapters.NewBluetoothServer(globalState, parkSetRepository)
-
 	// service registration
 	authService := services.NewAuthServiceImpl(authRepository, tokenHelper)
 
 	parkSenseService := services.NewParkSenseServiceImpl(globalState, reserveRepository, reserveHistoryRepository, authRepository, parkSetRepository)
+
+	// bluetooth client
+	bluetoothServer := adapters.NewBluetoothServer(globalState, parkSetRepository, parkSenseService)
 
 	// start service
 	grpcServer.RegisterServices([]pkg.Controller{
