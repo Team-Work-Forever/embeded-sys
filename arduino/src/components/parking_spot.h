@@ -17,11 +17,15 @@ private:
     RgbLed led;
     PressureSensor sensor;
     SpotState currentState = SpotState::Free;
+
     unsigned long reservedStartTime = 0;
     bool wasOccupiedDuringReserve = false;
     const unsigned long reserveTimeout = 120000;
-    bool reservedExpired = false;
+
     bool reservedUsed = false;
+    bool reservedExpired = false;
+    unsigned long specialStateTime = 0;
+    const unsigned long specialDisplayDuration = 3000;
 
 public:
     ParkingSpot(int r, int g, int b, int sensorPin)
@@ -40,20 +44,18 @@ public:
             if (sensor.isPressed())
             {
                 wasOccupiedDuringReserve = true;
-                reservedUsed = true;
-                reservedExpired = false;
                 led.occupied();
             }
             else if (wasOccupiedDuringReserve)
             {
                 reservedUsed = true;
-                reservedExpired = false;
+                specialStateTime = millis();
                 setState(SpotState::Free);
             }
             else if (millis() - reservedStartTime > reserveTimeout)
             {
-                reservedUsed = false;
                 reservedExpired = true;
+                specialStateTime = millis();
                 setState(SpotState::Free);
             }
             else
@@ -93,37 +95,41 @@ public:
             reservedExpired = false;
         }
 
-        switch (state)
+        if (state == SpotState::Free)
         {
-        case SpotState::Free:
             led.free();
-            break;
-        case SpotState::Reserved:
+        }
+        else if (state == SpotState::Reserved)
+        {
             led.reserved();
-            break;
-        case SpotState::Occupied:
+        }
+        else if (state == SpotState::Occupied)
+        {
             led.occupied();
-            break;
-        case SpotState::Emergency:
+        }
+        else if (state == SpotState::Emergency)
+        {
             led.emergency();
-            break;
         }
     }
 
-    SpotState getRawState() const
+    String getState()
     {
-        return currentState;
-    }
+        if (reservedUsed && millis() - specialStateTime < specialDisplayDuration)
+        {
+            return "free:used";
+        }
+        if (reservedExpired && millis() - specialStateTime < specialDisplayDuration)
+        {
+            return "free:expired";
+        }
 
-    String getState() const
-    {
+        reservedUsed = false;
+        reservedExpired = false;
+
         switch (currentState)
         {
         case SpotState::Free:
-            if (reservedUsed)
-                return "free:used";
-            if (reservedExpired)
-                return "free:expired";
             return "free";
         case SpotState::Reserved:
             return "reserved";
