@@ -17,6 +17,11 @@ private:
     RgbLed led;
     PressureSensor sensor;
     SpotState currentState = SpotState::Free;
+    unsigned long reservedStartTime = 0;
+    bool wasOccupiedDuringReserve = false;
+    const unsigned long reserveTimeout = 120000;
+    bool reservedExpired = false;
+    bool reservedUsed = false;
 
 public:
     ParkingSpot(int r, int g, int b, int sensorPin)
@@ -32,9 +37,32 @@ public:
     {
         if (currentState == SpotState::Reserved)
         {
-            led.reserved();
+            if (sensor.isPressed())
+            {
+                wasOccupiedDuringReserve = true;
+                reservedUsed = true;
+                reservedExpired = false;
+                led.occupied();
+            }
+            else if (wasOccupiedDuringReserve)
+            {
+                reservedUsed = true;
+                reservedExpired = false;
+                setState(SpotState::Free);
+            }
+            else if (millis() - reservedStartTime > reserveTimeout)
+            {
+                reservedUsed = false;
+                reservedExpired = true;
+                setState(SpotState::Free);
+            }
+            else
+            {
+                led.reserved();
+            }
             return;
         }
+
         if (currentState == SpotState::Emergency)
         {
             led.emergency();
@@ -56,6 +84,14 @@ public:
     void setState(SpotState state)
     {
         currentState = state;
+
+        if (state == SpotState::Reserved)
+        {
+            reservedStartTime = millis();
+            wasOccupiedDuringReserve = false;
+            reservedUsed = false;
+            reservedExpired = false;
+        }
 
         switch (state)
         {
@@ -84,6 +120,10 @@ public:
         switch (currentState)
         {
         case SpotState::Free:
+            if (reservedUsed)
+                return "free:used";
+            if (reservedExpired)
+                return "free:expired";
             return "free";
         case SpotState::Reserved:
             return "reserved";
