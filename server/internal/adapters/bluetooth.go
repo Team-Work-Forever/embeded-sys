@@ -320,3 +320,11 @@ func (blue *BluetoothServer) Serve() error {
 	go blue.MonitorBluetoothDevices()
 	select {}
 }
+
+func PortToParkSet() map[string]*domain.ParkSet {
+	return portToParkSet
+}
+
+func (b *BluetoothServer) SetService(service *services.ParkSenseServiceImpl) {
+	b.service = service
+}
