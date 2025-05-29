@@ -7,6 +7,7 @@ import (
 	"server/internal/middlewares"
 	"server/internal/repositories"
 	"server/internal/services/proto"
+	"server/internal/utils"
 	"time"
 
 	"google.golang.org/grpc"
@@ -25,16 +26,24 @@ type (
 		reserveHistoryRepo repositories.IReserveHistoryRepository
 		authRepo           repositories.IAuthRepository
 		parkSenseRepo      repositories.IParkSetRepository
+		bluetooth          BluetoothController
+		getPortToParkSet   func() map[string]*domain.ParkSet
 	}
 )
 
-func NewParkSenseServiceImpl(deviceStore domain.DeviceStore, reserveRepo repositories.IReserveRepository, reserveHistoryRepo repositories.IReserveHistoryRepository, authRepo repositories.IAuthRepository, parkSenseRepo repositories.IParkSetRepository) *ParkSenseServiceImpl {
+type BluetoothController interface {
+	ChangeParkLotState(deviceID string, lotNumber int, state domain.ParkLotState) error
+}
+
+func NewParkSenseServiceImpl(deviceStore domain.DeviceStore, reserveRepo repositories.IReserveRepository, reserveHistoryRepo repositories.IReserveHistoryRepository, authRepo repositories.IAuthRepository, parkSenseRepo repositories.IParkSetRepository, bluetooth BluetoothController, getPortToParkSet func() map[string]*domain.ParkSet) *ParkSenseServiceImpl {
 	return &ParkSenseServiceImpl{
 		deviceStore:        deviceStore,
 		reserveRepo:        reserveRepo,
 		reserveHistoryRepo: reserveHistoryRepo,
 		authRepo:           authRepo,
 		parkSenseRepo:      parkSenseRepo,
+		bluetooth:          bluetooth,
+		getPortToParkSet:   getPortToParkSet,
 	}
 }
 
@@ -137,6 +146,13 @@ func (s *ParkSenseServiceImpl) CreateReserve(ctx context.Context, req *proto.Cre
 	if err := s.parkSenseRepo.UpdateLot(parkLot); err != nil {
 		log.Printf("Failed to update lot state: %v", err)
 		return nil, status.Error(codes.Internal, "Could not update parking slot state")
+	}
+
+	if s.bluetooth != nil && s.getPortToParkSet != nil {
+		deviceID, lotNumber := utils.FindDeviceAndLotNumberBySlotId(s.getPortToParkSet(), parkLot.PublicId)
+		if deviceID != "" && lotNumber > 0 {
+			s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State)
+		}
 	}
 
 	return &proto.Reserve{
@@ -250,6 +266,13 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 		return nil, status.Error(codes.Internal, "Could not update parking slot state")
 	}
 
+	if s.bluetooth != nil && s.getPortToParkSet != nil {
+		deviceID, lotNumber := utils.FindDeviceAndLotNumberBySlotId(s.getPortToParkSet(), parkLot.PublicId)
+		if deviceID != "" && lotNumber > 0 {
+			s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State)
+		}
+	}
+
 	if err := s.reserveRepo.Delete(reserve); err != nil {
 		return nil, status.Error(codes.Internal, "Failed to cancel reservation")
 	}
@@ -275,6 +298,17 @@ func (s *ParkSenseServiceImpl) FinalizeReservationBySlotId(slotId string) {
 	})
 
 	log.Printf("Reservation finalized and moved to history for slot %s", slotId)
+
+	if parkLot, err := s.parkSenseRepo.GetLotByPublicId(slotId); err == nil && parkLot != nil {
+		parkLot.State = domain.Free
+		_ = s.parkSenseRepo.UpdateLot(parkLot)
+		if s.bluetooth != nil {
+			deviceID, lotNumber := utils.FindDeviceAndLotNumberBySlotId(s.getPortToParkSet(), parkLot.PublicId)
+			if deviceID != "" && lotNumber > 0 {
+				s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State)
+			}
+		}
+	}
 }
 
 func (s *ParkSenseServiceImpl) CancelReservationBySlotId(slotId string) {
@@ -286,6 +320,17 @@ func (s *ParkSenseServiceImpl) CancelReservationBySlotId(slotId string) {
 
 	_ = s.reserveRepo.Delete(reserve)
 	log.Printf("Reservation cancelled for slot %s", slotId)
+
+	if parkLot, err := s.parkSenseRepo.GetLotByPublicId(slotId); err == nil && parkLot != nil {
+		parkLot.State = domain.Free
+		_ = s.parkSenseRepo.UpdateLot(parkLot)
+		if s.bluetooth != nil {
+			deviceID, lotNumber := utils.FindDeviceAndLotNumberBySlotId(s.getPortToParkSet(), parkLot.PublicId)
+			if deviceID != "" && lotNumber > 0 {
+				s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State)
+			}
+		}
+	}
 }
 
 func (s *ParkSenseServiceImpl) GetAllParkSets(ctx context.Context, _ *emptypb.Empty) (*proto.ParkSetListResponse, error) {

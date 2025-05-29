@@ -87,10 +87,21 @@ func main() {
 	// service registration
 	authService := services.NewAuthServiceImpl(authRepository, tokenHelper)
 
-	parkSenseService := services.NewParkSenseServiceImpl(globalState, reserveRepository, reserveHistoryRepository, authRepository, parkSetRepository)
+	// bluetooth client (ainda sem referência ao parkSenseService)
+	bluetoothServer := adapters.NewBluetoothServer(globalState, parkSetRepository, nil)
 
-	// bluetooth client
-	bluetoothServer := adapters.NewBluetoothServer(globalState, parkSetRepository, parkSenseService)
+	// parkSenseService recebe o bluetoothServer e a função PortToParkSet
+	parkSenseService := services.NewParkSenseServiceImpl(
+		globalState,
+		reserveRepository,
+		reserveHistoryRepository,
+		authRepository,
+		parkSetRepository,
+		bluetoothServer,
+		adapters.PortToParkSet,
+	)
+
+	bluetoothServer.SetService(parkSenseService)
 
 	// start service
 	grpcServer.RegisterServices([]pkg.Controller{
