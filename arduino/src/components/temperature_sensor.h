@@ -48,7 +48,7 @@ public:
         return lastHum;
     }
 
-    bool isTooHot(float threshold = 30.0) const
+    bool isTooHot(float threshold = 24.0) const
     {
         return !isnan(lastTemp) && lastTemp > threshold;
     }

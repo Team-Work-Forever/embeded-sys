@@ -1,12 +1,11 @@
 #pragma once
-#include "park_manager.h"
 #include "../components/infra_red.h"
 #include "../components/buzzer.h"
 
 class BluetoothCommandHandler
 {
 public:
-    static void handle(const String &command, ParkManager &manager, Stream &bt, InfraRed &infraRedIn, InfraRed &infraRedOut, Buzzer &buzzer)
+    static void handle(const String &command, Stream &bt, InfraRed &infraRedIn, InfraRed &infraRedOut, Buzzer &buzzer)
     {
         String cmd = command;
         cmd.trim();
