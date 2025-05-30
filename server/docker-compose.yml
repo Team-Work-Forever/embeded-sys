@@ -8,6 +8,10 @@ services:
     ports:
       - ${GRPC_SERVER_PORT}:${GRPC_SERVER_PORT}
       - ${HTTP_SERVER_PORT}:${HTTP_SERVER_PORT}
+    devices:
+      - "/dev/rfcomm0:/dev/rfcomm0"
+    group_add:
+      - "dialout"
     env_file:
       - .env
     depends_on:

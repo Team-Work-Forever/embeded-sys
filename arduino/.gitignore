@@ -13,3 +13,5 @@ build/
 Thumbs.db
 *.bak
 *.swp
+
+scripts
