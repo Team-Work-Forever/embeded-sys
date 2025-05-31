@@ -20,6 +20,10 @@ public:
             buzzer.off();
             bt.println("Buzzer desativado.");
         }
+        else if (cmd == "WHOAREYOU")
+        {
+            bt.println("CONTROL");
+        }
         else
         {
             bt.println("Unknown command.");

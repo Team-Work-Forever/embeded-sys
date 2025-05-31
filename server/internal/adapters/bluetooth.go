@@ -33,6 +33,7 @@ func NewBluetoothServer(deviceStore domain.DeviceStore, parkSetRepo repositories
 var (
 	bluetoothPorts = make(map[string]goSerial.Port)
 	portToParkSet  = make(map[string]*domain.ParkSet)
+	deviceTypes    = make(map[string]string)
 )
 
 func ConnectDevices() {
@@ -230,6 +231,15 @@ func (blue *BluetoothServer) GetParkSetStatus(deviceID string) (string, error) {
 	return ReadBluetoothResponse(deviceID)
 }
 
+func SendCommandToDevice(deviceType string, command string) error {
+	for port, typ := range deviceTypes {
+		if typ == deviceType {
+			return SendBluetoothMessage(port, command)
+		}
+	}
+	return fmt.Errorf("No device of type %s found", deviceType)
+}
+
 func (blue *BluetoothServer) MonitorBluetoothDevices() {
 	for {
 		ports, err := enumerator.GetDetailedPortsList()
@@ -238,14 +248,6 @@ func (blue *BluetoothServer) MonitorBluetoothDevices() {
 			time.Sleep(5 * time.Second)
 			continue
 		}
-
-		// FIXME: remove later
-		// Log detalhado de todas as portas detectadas
-		log.Println("--- Serial ports detected ---")
-		for _, port := range ports {
-			log.Printf("Name: %s, Product: %s, SerialNumber: %s, IsUSB: %v, VID: %s, PID: %s", port.Name, port.Product, port.SerialNumber, port.IsUSB, port.VID, port.PID)
-		}
-		log.Println("-------------------------------")
 
 		found := make(map[string]bool)
 
@@ -263,6 +265,24 @@ func (blue *BluetoothServer) MonitorBluetoothDevices() {
 					}
 					bluetoothPorts[port.Name] = p
 					log.Printf("Connected to the port %s", port.Name)
+
+					err = SendBluetoothMessage(port.Name, "WHOAREYOU")
+					if err != nil {
+						log.Printf("Error sending WHOAREYOU to %s: %v", port.Name, err)
+						continue
+					}
+					resp, err := ReadBluetoothResponse(port.Name)
+					if err != nil {
+						log.Printf("Error reading WHOAREYOU response from %s: %v", port.Name, err)
+						continue
+					}
+					deviceType := strings.TrimSpace(resp)
+					deviceTypes[port.Name] = deviceType
+					if deviceType != "PARKSET" {
+						log.Printf("Ignoring non-parkset device: %s (response: %s)", port.Name, resp)
+						continue
+					}
+
 					if _, exists := portToParkSet[port.Name]; !exists {
 						parkSetState, lotStates, _, err := getDeviceStatusWithRaw(port.Name)
 						if err != nil {
