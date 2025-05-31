@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"server/internal/domain"
 	"server/internal/middlewares"
@@ -282,20 +283,40 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 
 func (s *ParkSenseServiceImpl) FinalizeReservationBySlotId(slotId string) {
 	reserve, err := s.reserveRepo.GetByPublicId(slotId)
-	if err != nil || reserve == nil {
+
+	if err != nil {
 		log.Printf("No active reservation to finalize for slot %s", slotId)
 		return
 	}
 
-	_ = s.reserveRepo.Delete(reserve)
+	txTransaction, err := s.reserveRepo.BeginTransaction()
 
-	_ = s.reserveHistoryRepo.Create(&domain.ReserveHistory{
+	if err != nil {
+		log.Printf("Failed to begin transaction for slot %s: %v", slotId, err)
+		return
+	}
+
+	if err := txTransaction.Delete(reserve); err != nil {
+		log.Printf("Failed to delete reservation for slot %s: %v", slotId, err)
+		return
+	}
+
+	fmt.Printf("Finalizing reservation for slot %s", slotId)
+	if err := txTransaction.Create(&domain.ReserveHistory{
 		SlotId:         reserve.SlotId,
 		SlotLabel:      reserve.SlotLabel,
 		UserId:         reserve.UserId,
 		TimestampBegin: reserve.Timestamp,
 		TimestampEnd:   time.Now(),
-	})
+	}); err != nil {
+		log.Printf("Failed to create reservation history for slot %s: %v", slotId, err)
+		return
+	}
+
+	if err := txTransaction.Commit(); err != nil {
+		log.Printf("Failed to commit transaction for slot %s: %v", slotId, err)
+		return
+	}
 
 	log.Printf("Reservation finalized and moved to history for slot %s", slotId)
 

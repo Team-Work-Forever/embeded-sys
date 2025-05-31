@@ -93,12 +93,26 @@ func ReadBluetoothResponse(id string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("port %s not connected", id)
 	}
-	buf := make([]byte, 128)
-	n, err := port.Read(buf)
-	if err != nil {
-		return "", err
+
+	var result []byte
+	buf := make([]byte, 256)
+
+	for {
+		n, err := port.Read(buf)
+		if err != nil {
+			return "", err
+		}
+		if n == 0 {
+			break
+		}
+		result = append(result, buf[:n]...)
+
+		if buf[n-1] == '\n' || buf[n-1] == '\r' {
+			break
+		}
 	}
-	return string(buf[:n]), nil
+
+	return string(result), nil
 }
 
 func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, []string, error) {
@@ -144,13 +158,17 @@ func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, 
 
 func getDeviceStatusWithRaw(portName string) (domain.ParkState, []domain.ParkLotState, []string, error) {
 	err := SendBluetoothMessage(portName, "GET STATUS")
+
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("error sending GET STATUS to %s: %v", portName, err)
 	}
+
 	resp, err := ReadBluetoothResponse(portName)
+
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("error reading device response %s: %v", portName, err)
 	}
+
 	return parseStatusResponse(resp)
 }
 
@@ -179,6 +197,9 @@ func (blue *BluetoothServer) CreateParkSet() {
 
 func (blue *BluetoothServer) UpdateParkSet() {
 	for portName, parkSet := range portToParkSet {
+		if deviceTypes[portName] != "PARKSET" {
+			continue
+		}
 		parkSetState, lotStates, rawStates, err := getDeviceStatusWithRaw(portName)
 		if err != nil {
 			log.Printf("Error obtaining device status %s: %v", portName, err)
@@ -208,7 +229,15 @@ func (blue *BluetoothServer) UpdateParkSet() {
 				case "expired":
 					blue.service.CancelReservationBySlotId(parkSet.Lots[i].PublicId)
 				}
+			}
 
+			if base == "occupied" {
+				parkSet.Lots[i].State = domain.Occupied
+				blue.parkSetRepo.UpdateLot(&parkSet.Lots[i])
+			}
+			if base == "reserved" {
+				parkSet.Lots[i].State = domain.Reserved
+				blue.parkSetRepo.UpdateLot(&parkSet.Lots[i])
 			}
 		}
 
@@ -218,8 +247,28 @@ func (blue *BluetoothServer) UpdateParkSet() {
 	}
 }
 
+func (blue *BluetoothServer) UpdateControlDevices() {
+	for portName, typ := range deviceTypes {
+		if typ != "CONTROL" {
+			continue
+		}
+		// TODO: Check if it is in emergency mode and control the entry and exit of cars
+		err := SendBluetoothMessage(portName, "BUZZER_OFF")
+		if err != nil {
+			log.Printf("Error sending command to CONTROL device %s: %v", portName, err)
+			continue
+		}
+		resp, err := ReadBluetoothResponse(portName)
+		if err != nil {
+			log.Printf("Error reading response from CONTROL device %s: %v", portName, err)
+			continue
+		}
+		log.Printf("CONTROL device %s responded: %s", portName, resp)
+	}
+}
+
 func (blue *BluetoothServer) ChangeParkLotState(deviceID string, lotNumber int, state domain.ParkLotState) error {
-	cmd := fmt.Sprintf("SET %d %v", lotNumber, state)
+	cmd := fmt.Sprintf("SET %d %v", lotNumber, domain.GetParkLotState(state))
 	return SendBluetoothMessage(deviceID, cmd)
 }
 
@@ -237,74 +286,70 @@ func SendCommandToDevice(deviceType string, command string) error {
 			return SendBluetoothMessage(port, command)
 		}
 	}
-	return fmt.Errorf("No device of type %s found", deviceType)
+	return fmt.Errorf("no device of type %s found", deviceType)
 }
 
 func (blue *BluetoothServer) MonitorBluetoothDevices() {
 	for {
-		ports, err := enumerator.GetDetailedPortsList()
+		devEntries, err := os.ReadDir("/dev")
 		if err != nil {
-			log.Printf("Error listing ports: %v", err)
-			time.Sleep(5 * time.Second)
+			log.Printf("Error reading /dev: %v", err)
 			continue
 		}
 
 		found := make(map[string]bool)
 
-		for _, port := range ports {
-			if strings.Contains(strings.ToUpper(port.Product), "HC-05") ||
-				strings.Contains(strings.ToUpper(port.Name), "HC-05") ||
-				strings.Contains(strings.ToUpper(port.SerialNumber), "HC-05") {
-				log.Printf("HC-05 port detected: %s (Product: %s, SerialNumber: %s)", port.Name, port.Product, port.SerialNumber)
-				found[port.Name] = true
-				if _, ok := bluetoothPorts[port.Name]; !ok {
-					p, err := goSerial.Open(port.Name, &goSerial.Mode{BaudRate: 9600})
+		for _, port := range devEntries {
+			if strings.HasPrefix(port.Name(), "rfcomm") {
+				devPath := "/dev/" + port.Name()
+				log.Printf("Bluetooth rfcomm device found: %s", devPath)
+				found[devPath] = true
+				if _, ok := bluetoothPorts[devPath]; !ok {
+					p, err := goSerial.Open(devPath, &goSerial.Mode{BaudRate: 9600})
 					if err != nil {
-						log.Printf("Error when opening %s: %v", port.Name, err)
+						log.Printf("Error when opening %s: %v", devPath, err)
 						continue
 					}
-					bluetoothPorts[port.Name] = p
-					log.Printf("Connected to the port %s", port.Name)
+					bluetoothPorts[devPath] = p
+					log.Printf("Connected to the port %s", devPath)
 
-					err = SendBluetoothMessage(port.Name, "WHOAREYOU")
+					err = SendBluetoothMessage(devPath, "WHOAREYOU")
 					if err != nil {
-						log.Printf("Error sending WHOAREYOU to %s: %v", port.Name, err)
+						log.Printf("Error sending WHOAREYOU to %s: %v", devPath, err)
 						continue
 					}
-					resp, err := ReadBluetoothResponse(port.Name)
+					resp, err := ReadBluetoothResponse(devPath)
 					if err != nil {
-						log.Printf("Error reading WHOAREYOU response from %s: %v", port.Name, err)
+						log.Printf("Error reading WHOAREYOU response from %s: %v", devPath, err)
 						continue
 					}
 					deviceType := strings.TrimSpace(resp)
-					deviceTypes[port.Name] = deviceType
-					if deviceType != "PARKSET" {
-						log.Printf("Ignoring non-parkset device: %s (response: %s)", port.Name, resp)
-						continue
-					}
+					deviceTypes[devPath] = deviceType
 
-					if _, exists := portToParkSet[port.Name]; !exists {
-						parkSetState, lotStates, _, err := getDeviceStatusWithRaw(port.Name)
-						if err != nil {
-							log.Printf("Error obtaining device status %s: %v", port.Name, err)
-							continue
+					if deviceType == "PARKSET" {
+						if _, exists := portToParkSet[devPath]; !exists {
+							parkSetState, lotStates, _, err := getDeviceStatusWithRaw(devPath)
+							if err != nil {
+								log.Printf("Error obtaining device status %s: %v", devPath, err.Error())
+								continue
+							}
+							parkSet := domain.NewParkSet(parkSetState)
+							for i, lotState := range lotStates {
+								lot := domain.NewParkLot(lotState, uint32(i+1), 1)
+								parkSet.AddLot(lot)
+							}
+							blue.deviceStore.AddDevice(parkSet)
+							if err := blue.parkSetRepo.Create(parkSet); err != nil {
+								log.Printf("Error creating ParkSet: %v", err)
+							}
+							portToParkSet[devPath] = parkSet
 						}
-						parkSet := domain.NewParkSet(parkSetState)
-						for i, lotState := range lotStates {
-							lot := domain.NewParkLot(lotState, uint32(i+1), 1)
-							parkSet.AddLot(lot)
-						}
-						blue.deviceStore.AddDevice(parkSet)
-						if err := blue.parkSetRepo.Create(parkSet); err != nil {
-							log.Printf("Error creating ParkSet: %v", err)
-						}
-						portToParkSet[port.Name] = parkSet
 					}
 				}
-				if parkSet, exists := portToParkSet[port.Name]; exists {
-					parkSetState, lotStates, _, err := getDeviceStatusWithRaw(port.Name)
+				if parkSet, exists := portToParkSet[devPath]; exists && deviceTypes[devPath] == "PARKSET" {
+					parkSetState, lotStates, _, err := getDeviceStatusWithRaw(devPath)
 					if err != nil {
-						log.Printf("Error obtaining device status %s: %v", port.Name, err)
+						log.Printf("Error obtaining device status %s: %v", devPath, err)
 						continue
 					}
 					parkSet.State = parkSetState
@@ -332,6 +377,8 @@ func (blue *BluetoothServer) MonitorBluetoothDevices() {
 			}
 		}
 
+		blue.UpdateParkSet()
+		blue.UpdateControlDevices()
 		time.Sleep(2 * time.Second)
 	}
 }

@@ -77,3 +77,16 @@ func (u *ParkSet) BeforeCreate(tx *gorm.DB) error {
 	u.DeletedAt = nil
 	return nil
 }
+
+func GetParkLotState(state ParkLotState) string {
+	switch state {
+	case Free:
+		return "FREE"
+	case Occupied:
+		return "OCCUPIED"
+	case Reserved:
+		return "RESERVED"
+	default:
+		return "UNKNOWN"
+	}
+}
