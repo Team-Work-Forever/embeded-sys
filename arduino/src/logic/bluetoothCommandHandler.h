@@ -20,6 +20,10 @@ public:
         {
             bt.println(manager.getStatus());
         }
+        else if (cmd == "WHOAREYOU")
+        {
+            bt.println("PARKSET");
+        }
         else
         {
             bt.println("Unknown command.");
