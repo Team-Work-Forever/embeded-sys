@@ -14,6 +14,7 @@ type (
 		pkg.Repository[*domain.Reserve]
 
 		GetByPublicId(publicId string) (*domain.Reserve, error)
+		GetByPublicSlotId(slotId string) (*domain.Reserve, error)
 		GetByUserId(userId string) ([]*domain.Reserve, error)
 	}
 )
@@ -28,6 +29,16 @@ func (rr *ReserveRepository) GetByPublicId(publicId string) (*domain.Reserve, er
 	var reserve *domain.Reserve
 
 	if err := rr.Context.Statement.Where("public_id = ?", publicId).First(&reserve).Error; err != nil {
+		return nil, err
+	}
+
+	return reserve, nil
+}
+
+func (rr *ReserveRepository) GetByPublicSlotId(slotId string) (*domain.Reserve, error) {
+	var reserve *domain.Reserve
+
+	if err := rr.Context.Statement.Where("slot_id = ?", slotId).First(&reserve).Error; err != nil {
 		return nil, err
 	}
 
