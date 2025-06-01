@@ -204,23 +204,36 @@ func (blue *BluetoothServer) initOrLoadParkSet(mac string) {
 
 	log.Printf("Checking if MAC %s already exists in the repository...", mac)
 	parkSet, err := blue.parkSetRepo.GetByMAC(mac)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Printf("Error retrieving ParkSet for MAC %s: %v", mac, err)
+		return
+	}
 
-	parkSetState, lotStates, _, err := getDeviceStatusWithRaw(mac)
+	psState, lotStates, _, err := getDeviceStatusWithRaw(mac)
 	if err != nil {
 		log.Printf("Error obtaining ParkSet status %s: %v", mac, err)
 		return
 	}
 
-	if err == nil && parkSet != nil {
+	if parkSet != nil {
 		if parkSet.DeletedAt.Valid {
 			parkSet.DeletedAt = &gorm.DeletedAt{}
-			log.Printf("ParkSet %s reactivated", mac)
+			existingLots, err := blue.parkSetRepo.GetLotsByParkSetID(parkSet.ID)
+			if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Printf("Error retrieving existing lots for ParkSet %s: %v", mac, err)
+				return
+			}
+			parkSet.Lots = existingLots
+			for i := range parkSet.Lots {
+				parkSet.Lots[i].DeletedAt = &gorm.DeletedAt{}
+			}
+			log.Printf("ParkSet %s reactivated with existing lots", mac)
 		}
-		parkSet.State = parkSetState
-		parkSet.Lots = nil
+		parkSet.State = psState
 		for i, lotState := range lotStates {
-			lot := domain.NewParkLot(lotState, uint32(i+1), 1)
-			parkSet.AddLot(lot)
+			if i < len(parkSet.Lots) {
+				parkSet.Lots[i].State = lotState
+			}
 		}
 		if err := blue.parkSetRepo.Update(parkSet); err != nil {
 			log.Printf("Error updating ParkSet %s: %v", mac, err)
@@ -231,14 +244,8 @@ func (blue *BluetoothServer) initOrLoadParkSet(mac string) {
 		return
 	}
 
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Printf("Unexpected error when searching for ParkSet by MAC %s: %v", mac, err)
-		return
-	}
-
-	parkSet = domain.NewParkSet(parkSetState)
+	parkSet = domain.NewParkSet(psState)
 	parkSet.MAC = mac
-
 	for i, lotState := range lotStates {
 		lot := domain.NewParkLot(lotState, uint32(i+1), 1)
 		parkSet.AddLot(lot)
@@ -269,7 +276,7 @@ func (blue *BluetoothServer) UpdateParkSet() {
 		conn.Device.State = parkSetState
 
 		if parkSetState == domain.Fire {
-			log.Printf("Set %s to FIRE status, cancelling all reservations", mac)
+			log.Printf("ParkSet %s set to FIRE status, cancelling all reservations", mac)
 			for i, lot := range conn.Device.Lots {
 				blue.Service.CancelReservationBySlotId(lot.PublicId)
 				if err := blue.ChangeParkLotState(mac, i+1, domain.Free); err != nil {
@@ -324,10 +331,33 @@ func (blue *BluetoothServer) cleanupDisconnectedDevices(found map[string]bool) {
 
 	for _, mac := range toDisconnect {
 		devicesMux.Lock()
-		conn := bluetoothDevices[mac]
+		conn, exists := bluetoothDevices[mac]
+		if !exists {
+			log.Printf("Device %s already removed from bluetoothDevices", mac)
+			devicesMux.Unlock()
+			continue
+		}
+
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Panic recovered while disconnecting device %s: %v", mac, r)
+			}
+			devicesMux.Unlock()
+		}()
+
 		if conn.DeviceType == "PARKSET" && conn.Device != nil {
 			now := time.Now()
 			conn.Device.DeletedAt = &gorm.DeletedAt{Time: now, Valid: true}
+			for i := range conn.Device.Lots {
+				lot := &conn.Device.Lots[i]
+				lot.DeletedAt = &gorm.DeletedAt{Time: now, Valid: true}
+				if err := blue.parkSetRepo.DeleteReservationsBySlotId(lot.PublicId); err != nil {
+					log.Printf("Error deleting reservations for lot %s of ParkSet %s: %v", lot.PublicId, mac, err)
+				}
+				if err := blue.parkSetRepo.UpdateLot(lot); err != nil {
+					log.Printf("Error marking lot %s as deleted for ParkSet %s: %v", lot.PublicId, mac, err)
+				}
+			}
 			if err := blue.parkSetRepo.Update(conn.Device); err != nil {
 				log.Printf("Error marking ParkSet %s as deleted: %v", mac, err)
 			} else {
@@ -338,9 +368,10 @@ func (blue *BluetoothServer) cleanupDisconnectedDevices(found map[string]bool) {
 		}
 		if conn.Port != nil {
 			_ = conn.Port.Close()
+			log.Printf("Port for %s closed", mac)
 		}
 		delete(bluetoothDevices, mac)
-		devicesMux.Unlock()
+		log.Printf("Device %s removed from bluetoothDevices", mac)
 	}
 }
 
@@ -365,16 +396,16 @@ func (blue *BluetoothServer) ChangeParkLotState(mac string, lotNumber int, state
 	resp, err := SendAndReadLine(mac, cmd, 1*time.Second)
 	log.Printf("Sending SET command to %s: %s, response: %s", mac, cmd, resp)
 	if err != nil {
-		return fmt.Errorf("Error sending SET command: %v", err)
+		return fmt.Errorf("error sending SET command: %v", err)
 	}
 	if resp != "SET OK" {
 		log.Printf("Unexpected response when setting status of vacancy %d in %s: %s", lotNumber, mac, resp)
-		return fmt.Errorf("Failure to set status of vacancy %d in %s: %s", lotNumber, mac, resp)
+		return fmt.Errorf("failure to set status of vacancy %d in %s: %s", lotNumber, mac, resp)
 	}
 	_, lotStates, _, err := getDeviceStatusWithRaw(mac)
 	if err != nil {
 		log.Printf("Error validating status after SET to %s: %v", mac, err)
-		return fmt.Errorf("Error validating status after SET: %v", err)
+		return fmt.Errorf("error validating status after SET: %v", err)
 	}
 	if lotNumber-1 < len(lotStates) && lotStates[lotNumber-1] != state {
 		log.Printf("Status of vacancy %d in %s does not match expectations (%v != %v)", lotNumber, mac, lotStates[lotNumber-1], state)
