@@ -8,6 +8,7 @@ import (
 type (
 	DeviceStore interface {
 		AddDevice(device *ParkSet)
+		RemoveDevice(mac string)
 		GetDevices() []*ParkSet
 		Subscrive() (<-chan *ParkSet, func())
 	}
@@ -32,11 +33,18 @@ func (dm *DeviceManager) AddDevice(device *ParkSet) {
 	dm.mux.Lock()
 	defer dm.mux.Unlock()
 
-	dm.devices[device.ID] = device
+	dm.devices[device.MAC] = device
 
 	for _, ch := range dm.listeners {
 		ch <- device
 	}
+}
+
+func (dm *DeviceManager) RemoveDevice(mac string) {
+	dm.mux.Lock()
+	defer dm.mux.Unlock()
+
+	delete(dm.devices, mac)
 }
 
 func (dm *DeviceManager) GetDevices() []*ParkSet {

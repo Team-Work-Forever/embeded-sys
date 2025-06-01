@@ -5,9 +5,10 @@ CREATE TABLE park_set (
   id TEXT PRIMARY KEY,
   public_id TEXT NOT NULL UNIQUE,
   state INTEGER NOT NULL,
+  mac_address TEXT UNIQUE,
   created_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
   updated_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
-  deleted_at TEXT,
+  deleted_at TIMESTAMP,
   CONSTRAINT valid_public_id CHECK (public_id != '')
 );
 
@@ -20,7 +21,7 @@ CREATE TABLE park_lot (
   col INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
   updated_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
-  deleted_at TEXT,
+  deleted_at TIMESTAMP,
   FOREIGN KEY (park_set_id) REFERENCES park_set(id) ON DELETE CASCADE
 );
 

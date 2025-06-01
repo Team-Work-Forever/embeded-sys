@@ -3,8 +3,6 @@
 #include "logic/park_manager.h"
 #include "logic/bluetoothCommandHandler.h"
 
-#define SET_BT_NAME false
-
 TempSensor tempSensor(7);
 ParkingSpot spots[] = {
     ParkingSpot(9, 10, 11, A0),
@@ -19,31 +17,23 @@ ParkManager manager(tempSensor, spots, numSpots);
 
 void setup()
 {
+  BT.begin(9600);
   Serial.begin(9600);
   manager.init();
-
-  if (SET_BT_NAME)
-  {
-    BT.begin(38400);
-    delay(500);
-    BT.println("AT+NAME=LOT");
-  }
-  else
-  {
-    BT.begin(9600);
-    BT.println("Bluetooth ready. Send commands.");
-  }
 }
 
 void loop()
 {
-  manager.update();
-
   if (BT.available())
   {
     String command = BT.readStringUntil('\n');
+    command.trim();
+    Serial.print("Received command: [");
+    Serial.print(command);
+    Serial.println("]");
     BluetoothCommandHandler::handle(command, manager, BT);
   }
 
-  delay(150);
+  manager.update();
+  delay(20);
 }
