@@ -3,6 +3,8 @@ package repositories
 import (
 	"server/internal/domain"
 	"server/pkg"
+
+	"gorm.io/gorm"
 )
 
 type (
@@ -16,6 +18,7 @@ type (
 		GetAllParkSets() ([]*domain.ParkSet, error)
 		GetLotByPublicId(publicId string) (*domain.ParkLot, error)
 		UpdateLot(lot *domain.ParkLot) error
+		UpdateLotState(publicId string, state domain.ParkLotState) error
 	}
 )
 
@@ -45,4 +48,11 @@ func (pr *ParkSetRepository) GetLotByPublicId(publicId string) (*domain.ParkLot,
 
 func (pr *ParkSetRepository) UpdateLot(lot *domain.ParkLot) error {
 	return pr.Context.Statement.Save(lot).Error
+}
+
+func (pr *ParkSetRepository) UpdateLotState(publicId string, state domain.ParkLotState) error {
+	db := (*gorm.DB)(pr.Context)
+	return db.Model(&domain.ParkLot{}).
+		Where("public_id = ?", publicId).
+		Update("state", state).Error
 }
