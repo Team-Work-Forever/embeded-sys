@@ -236,16 +236,16 @@ func (blue *BluetoothServer) UpdateParkSet() {
 					blue.service.CancelReservationBySlotId(parkSet.Lots[i].PublicId)
 				}
 				parkSet.Lots[i].State = domain.Free
-				blue.parkSetRepo.UpdateLot(&parkSet.Lots[i])
+				blue.parkSetRepo.UpdateLotState(parkSet.Lots[i].PublicId, parkSet.Lots[i].State)
 			}
 
 			if base == "occupied" {
 				parkSet.Lots[i].State = domain.Occupied
-				blue.parkSetRepo.UpdateLot(&parkSet.Lots[i])
+				blue.parkSetRepo.UpdateLotState(parkSet.Lots[i].PublicId, parkSet.Lots[i].State)
 			}
 			if base == "reserved" {
 				parkSet.Lots[i].State = domain.Reserved
-				blue.parkSetRepo.UpdateLot(&parkSet.Lots[i])
+				blue.parkSetRepo.UpdateLotState(parkSet.Lots[i].PublicId, parkSet.Lots[i].State)
 			}
 		}
 
