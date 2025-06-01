@@ -7,7 +7,7 @@ CREATE TABLE auths (
   secret_key TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
   updated_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
-  deleted_at TEXT,
+  deleted_at TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT valid_public_id CHECK(public_id != '')
 );

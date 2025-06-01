@@ -19,6 +19,7 @@ type (
 		GetLotByPublicId(publicId string) (*domain.ParkLot, error)
 		UpdateLot(lot *domain.ParkLot) error
 		UpdateLotState(publicId string, state domain.ParkLotState) error
+		GetByMAC(mac string) (*domain.ParkSet, error)
 	}
 )
 
@@ -55,4 +56,13 @@ func (pr *ParkSetRepository) UpdateLotState(publicId string, state domain.ParkLo
 	return db.Model(&domain.ParkLot{}).
 		Where("public_id = ?", publicId).
 		Update("state", state).Error
+}
+
+func (pr *ParkSetRepository) GetByMAC(mac string) (*domain.ParkSet, error) {
+	var parkSet domain.ParkSet
+	err := pr.Context.Statement.Where("mac_address = ?", mac).First(&parkSet).Error
+	if err != nil {
+		return nil, err
+	}
+	return &parkSet, nil
 }

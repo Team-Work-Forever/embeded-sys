@@ -1,12 +1,15 @@
 package utils
 
-import "server/internal/domain"
+import "server/internal/adapters"
 
-func FindDeviceAndLotNumberBySlotId(portToParkSet map[string]*domain.ParkSet, slotId string) (string, int) {
-	for deviceID, parkSet := range portToParkSet {
-		for idx, lot := range parkSet.Lots {
+func FindDeviceAndLotNumberBySlotId(slotId string) (string, int) {
+	for mac, conn := range adapters.BluetoothDevices {
+		if conn.Device == nil {
+			continue
+		}
+		for idx, lot := range conn.Device.Lots {
 			if lot.PublicId == slotId {
-				return deviceID, idx + 1
+				return mac, idx + 1
 			}
 		}
 	}

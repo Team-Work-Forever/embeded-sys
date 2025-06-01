@@ -34,6 +34,7 @@ type (
 		pkg.EntityBase
 		Lots  []ParkLot `gorm:"foreignKey:ParkSetID;references:ID"`
 		State ParkState
+		MAC   string `gorm:"column:mac_address;uniqueIndex"`
 	}
 )
 

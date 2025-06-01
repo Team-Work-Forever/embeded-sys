@@ -10,7 +10,7 @@ CREATE TABLE reserve (
   timestamp TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
   updated_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
-  deleted_at TEXT,
+  deleted_at TIMESTAMP,
   FOREIGN KEY (slot_id) REFERENCES park_lot(id) ON DELETE CASCADE
 );
 
@@ -24,7 +24,7 @@ CREATE TABLE reserve_history (
   timestamp_end TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
   updated_at TIMESTAMP DEFAULT (strftime('%s', 'now')),
-  deleted_at TEXT,
+  deleted_at TIMESTAMP,
   FOREIGN KEY (slot_id) REFERENCES park_lot(id) ON DELETE CASCADE
 );
 
