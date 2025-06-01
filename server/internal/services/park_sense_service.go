@@ -282,7 +282,7 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 }
 
 func (s *ParkSenseServiceImpl) FinalizeReservationBySlotId(slotId string) {
-	reserve, err := s.reserveRepo.GetByPublicId(slotId)
+	reserve, err := s.reserveRepo.GetByPublicSlotId(slotId)
 
 	if err != nil {
 		log.Printf("No active reservation to finalize for slot %s", slotId)
@@ -333,7 +333,7 @@ func (s *ParkSenseServiceImpl) FinalizeReservationBySlotId(slotId string) {
 }
 
 func (s *ParkSenseServiceImpl) CancelReservationBySlotId(slotId string) {
-	reserve, err := s.reserveRepo.GetByPublicId(slotId)
+	reserve, err := s.reserveRepo.GetByPublicSlotId(slotId)
 	if err != nil || reserve == nil {
 		log.Printf("No active reservation to cancel for slot %s", slotId)
 		return

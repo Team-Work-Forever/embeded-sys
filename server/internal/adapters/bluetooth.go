@@ -90,21 +90,25 @@ func SendBluetoothMessage(id string, message string) error {
 
 func ReadBluetoothResponse(id string) (string, error) {
 	port, ok := bluetoothPorts[id]
+
 	if !ok {
 		return "", fmt.Errorf("port %s not connected", id)
 	}
 
 	var result []byte
-	buf := make([]byte, 256)
+	buf := make([]byte, 1024)
 
 	for {
 		n, err := port.Read(buf)
+
 		if err != nil {
-			return "", err
+			break
 		}
+
 		if n == 0 {
 			break
 		}
+
 		result = append(result, buf[:n]...)
 
 		if buf[n-1] == '\n' || buf[n-1] == '\r' {
@@ -117,6 +121,8 @@ func ReadBluetoothResponse(id string) (string, error) {
 
 func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, []string, error) {
 	parts := strings.Split(resp, ";")
+
+	log.Print("Raw response: ", resp, "\n")
 	if len(parts) < 2 {
 		return 0, nil, nil, fmt.Errorf("invalid answer: %s", resp)
 	}
@@ -229,6 +235,8 @@ func (blue *BluetoothServer) UpdateParkSet() {
 				case "expired":
 					blue.service.CancelReservationBySlotId(parkSet.Lots[i].PublicId)
 				}
+				parkSet.Lots[i].State = domain.Free
+				blue.parkSetRepo.UpdateLot(&parkSet.Lots[i])
 			}
 
 			if base == "occupied" {
@@ -303,13 +311,16 @@ func (blue *BluetoothServer) MonitorBluetoothDevices() {
 			if strings.HasPrefix(port.Name(), "rfcomm") {
 				devPath := "/dev/" + port.Name()
 				log.Printf("Bluetooth rfcomm device found: %s", devPath)
+
 				found[devPath] = true
+
 				if _, ok := bluetoothPorts[devPath]; !ok {
 					p, err := goSerial.Open(devPath, &goSerial.Mode{BaudRate: 9600})
 					if err != nil {
 						log.Printf("Error when opening %s: %v", devPath, err)
 						continue
 					}
+
 					bluetoothPorts[devPath] = p
 					log.Printf("Connected to the port %s", devPath)
 
@@ -318,21 +329,26 @@ func (blue *BluetoothServer) MonitorBluetoothDevices() {
 						log.Printf("Error sending WHOAREYOU to %s: %v", devPath, err)
 						continue
 					}
+
 					resp, err := ReadBluetoothResponse(devPath)
+
 					if err != nil {
 						log.Printf("Error reading WHOAREYOU response from %s: %v", devPath, err)
 						continue
 					}
+
 					deviceType := strings.TrimSpace(resp)
 					deviceTypes[devPath] = deviceType
 
 					if deviceType == "PARKSET" {
 						if _, exists := portToParkSet[devPath]; !exists {
 							parkSetState, lotStates, _, err := getDeviceStatusWithRaw(devPath)
+
 							if err != nil {
 								log.Printf("Error obtaining device status %s: %v", devPath, err.Error())
 								continue
 							}
+
 							parkSet := domain.NewParkSet(parkSetState)
 							for i, lotState := range lotStates {
 								lot := domain.NewParkLot(lotState, uint32(i+1), 1)
