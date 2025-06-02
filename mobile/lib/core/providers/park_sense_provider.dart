@@ -4,6 +4,7 @@ import 'package:mobile/services/proto/parksense.pbgrpc.dart';
 
 abstract class ParkSenseProvider {
   ParkSet? get latest;
+  List<ParkSet> get parkSets;
 
   void startListening();
 

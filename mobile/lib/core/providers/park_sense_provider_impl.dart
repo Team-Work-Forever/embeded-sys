@@ -14,6 +14,7 @@ class ParkSenseProviderImpl extends ViewModel implements ParkSenseProvider {
   late StreamSubscription<ParkSet> _subscription;
   late bool _isListening = false;
 
+  List<ParkSet> _parkSets = [];
   ParkSet? _latest;
 
   ParkSenseProviderImpl(this._parkSenseService);
@@ -21,12 +22,26 @@ class ParkSenseProviderImpl extends ViewModel implements ParkSenseProvider {
   @override
   ParkSet? get latest => _latest;
 
+  @override
+  List<ParkSet> get parkSets => _parkSets;
+
+  void _addParkSet(ParkSet parkSet) {
+    if (_parkSets.any((ps) => ps.parkSetId == parkSet.parkSetId)) {
+      _parkSets.removeWhere((ps) => ps.parkSetId == parkSet.parkSetId);
+    }
+
+    _parkSets.add(parkSet);
+    notifyListeners();
+  }
+
   void _subscriveToStream() {
     var parkStream = _parkSenseService.streamIncomingParkLot();
 
     _subscription = parkStream.listen(
       (parkSet) {
-        _latest = parkSet;
+        // _latest = parkSet;
+        debugPrint("Received ParkSet: ${parkSet.parkSetId}");
+        _addParkSet(parkSet);
 
         debugPrint("ParkSet: ${parkSet.parkSetId}");
         notifyListeners();

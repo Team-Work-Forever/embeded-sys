@@ -32,6 +32,8 @@ final class HomeView extends LinearView<HomeViewModel> {
   }
 
   Widget _buildMatriz() {
+    viewModel.defineMatrix();
+
     return Positioned.fill(
       child: InteractiveMatrix(
         sections: viewModel.sections,
