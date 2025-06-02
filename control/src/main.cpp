@@ -7,15 +7,15 @@
 #include "components/display.h"
 #include "./comn/bluetooth_transmitter.h"
 
-SoftwareSerial BT(2, 3);
+SoftwareSerial BT(10, 11);
 BluetoothTransmitter bt(BT);
 
 #define INFRA_RED_IN_PIN A0
 #define INFRA_RED_OUT_PIN A1
 #define BUZZER_PIN 8
 
-#define LCD_RS_PIN 12
-#define LCD_EN_PIN 11
+#define LCD_RS_PIN 13
+#define LCD_EN_PIN 12
 #define LCD_D4_PIN 9
 #define LCD_D5_PIN 6
 #define LCD_D6_PIN 5
