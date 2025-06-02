@@ -1,27 +1,39 @@
 #pragma once
+#include "../logic/car_manager.h"
 #include "../components/infra_red.h"
 #include "../components/buzzer.h"
 
 class BluetoothCommandHandler
 {
 public:
-    static void handle(const String &command, Stream &bt, InfraRed &infraRedIn, InfraRed &infraRedOut, Buzzer &buzzer)
+    static void handle(const String &command, Stream &bt, InfraRed &infraRedIn, InfraRed &infraRedOut, Buzzer &buzzer, CarManager &carManager)
     {
         String cmd = command;
         cmd.trim();
 
-        if (cmd == "BUZZER_ON")
+        String upperCmd = cmd;
+        upperCmd.toUpperCase();
+
+        if (upperCmd == "BUZZER_ON")
         {
             buzzer.on();
-            bt.println("Buzzer ativado.");
+            Serial.println("Sending SET ON response");
+            bt.println("SET ON");
         }
-        else if (cmd == "BUZZER_OFF")
+        else if (upperCmd == "BUZZER_OFF")
         {
             buzzer.off();
-            bt.println("Buzzer desativado.");
+            Serial.println("Sending SET OFF response");
+            bt.println("SET OFF");
         }
-        else if (cmd == "WHOAREYOU")
+        else if (upperCmd == "PING")
         {
+            Serial.println("Sending PONG response");
+            bt.println("PONG");
+        }
+        else if (upperCmd == "WHOAREYOU")
+        {
+            Serial.println("Sending CONTROL response");
             bt.println("CONTROL");
         }
         else
