@@ -34,6 +34,11 @@ public:
             Serial.println("Sending PARKSET response");
             bt.println("PARKSET");
         }
+        else if (upperCmd == "MAC")
+        {
+            Serial.println("Sending MAC response");
+            bt.println("98:D3:B1:FE:9A:EE");
+        }
         else
         {
             bt.println("Unknown command.");

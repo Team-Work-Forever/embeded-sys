@@ -36,6 +36,11 @@ public:
             Serial.println("Sending CONTROL response");
             bt.println("CONTROL");
         }
+        else if (upperCmd == "MAC")
+        {
+            Serial.println("Sending MAC response");
+            bt.println("98:D3:11:FD:71:A7");
+        }
         else
         {
             bt.println("Unknown command.");

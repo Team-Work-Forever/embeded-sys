@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"server/internal/domain"
 	"server/internal/repositories"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"tinygo.org/x/bluetooth"
 
 	goSerial "go.bug.st/serial"
 )
@@ -54,94 +54,6 @@ func NewBluetoothServer(deviceStore domain.DeviceStore, parkSetRepo repositories
 	}
 }
 
-func getMACFromNearby(devPath string) (string, error) {
-	adapter := bluetooth.DefaultAdapter
-	if err := adapter.Enable(); err != nil {
-		return "", fmt.Errorf("error activating Bluetooth adapter: %w", err)
-	}
-
-	macChan := make(chan string, 1)
-
-	go func() {
-		adapter.Scan(func(adapter *bluetooth.Adapter, result bluetooth.ScanResult) {
-			if strings.Contains(strings.ToLower(devPath), "rfcomm") {
-				log.Printf("Device found via scan: %s [%s]", result.Address.String(), result.LocalName())
-				macChan <- result.Address.String()
-				_ = adapter.StopScan()
-			}
-		})
-	}()
-
-	select {
-	case mac := <-macChan:
-		return mac, nil
-	case <-time.After(10 * time.Second):
-		_ = adapter.StopScan()
-		return "", fmt.Errorf("timeout when trying to detect MAC for %s", devPath)
-	}
-}
-
-func (blue *BluetoothServer) connectBluetoothDevice(devPath, macAddr string) {
-	devicesMux.Lock()
-	if oldConn, ok := bluetoothDevices[macAddr]; ok {
-		_ = oldConn.Port.Close()
-		delete(bluetoothDevices, macAddr)
-	}
-	devicesMux.Unlock()
-
-	p, err := goSerial.Open(devPath, &goSerial.Mode{BaudRate: 9600})
-	if err != nil {
-		log.Printf("Error opening port %s: %v", devPath, err)
-		return
-	}
-
-	conn := &BluetoothConnection{
-		MAC:     macAddr,
-		Port:    p,
-		DevPath: devPath,
-	}
-	devicesMux.Lock()
-	bluetoothDevices[macAddr] = conn
-	devicesMux.Unlock()
-
-	time.Sleep(1 * time.Second)
-
-	if !pingBluetoothDevice(macAddr) {
-		log.Printf("Failed to ping device %s after connection", macAddr)
-		_ = p.Close()
-		devicesMux.Lock()
-		delete(bluetoothDevices, macAddr)
-		devicesMux.Unlock()
-		return
-	}
-
-	resp, err := SendAndReadLine(macAddr, "WHOAREYOU", 1*time.Second)
-	if err != nil {
-		log.Printf("Error sending WHOAREYOU to %s: %v", macAddr, err)
-		_ = p.Close()
-		devicesMux.Lock()
-		delete(bluetoothDevices, macAddr)
-		devicesMux.Unlock()
-		return
-	}
-
-	log.Printf("Response WHOAREYOU from %s: [%s]", macAddr, resp)
-
-	conn.DeviceType = strings.TrimSpace(resp)
-	switch conn.DeviceType {
-	case "PARKSET":
-		blue.initOrLoadParkSet(macAddr)
-	case "CONTROL":
-		log.Printf("Device CONTROL %s initialised", macAddr)
-	default:
-		log.Printf("Unknown device type [%s] (%s)", conn.DeviceType, macAddr)
-		_ = p.Close()
-		devicesMux.Lock()
-		delete(bluetoothDevices, macAddr)
-		devicesMux.Unlock()
-	}
-}
-
 func (blue *BluetoothServer) detectAndConnectBluetoothPorts() map[string]bool {
 	devEntries, err := goSerial.GetPortsList()
 	if err != nil {
@@ -169,9 +81,23 @@ func (blue *BluetoothServer) detectAndConnectBluetoothPorts() map[string]bool {
 			continue
 		}
 
-		macAddr, err := getMACFromNearby(devPath)
+		p, err := goSerial.Open(devPath, &goSerial.Mode{BaudRate: 9600})
 		if err != nil {
-			log.Printf("Error obtaining MAC from %s: %v", devPath, err)
+			log.Printf("Error opening port %s: %v", devPath, err)
+			continue
+		}
+
+		resp, err := SendAndReadLinePort(p, "MAC", 1*time.Second)
+		if err != nil {
+			log.Printf("Error sending MAC to %s: %v", devPath, err)
+			p.Close()
+			continue
+		}
+
+		macAddr := strings.TrimSpace(resp)
+		if !isValidMAC(macAddr) {
+			log.Printf("Invalid MAC address received from %s: %s", devPath, macAddr)
+			p.Close()
 			continue
 		}
 
@@ -179,15 +105,140 @@ func (blue *BluetoothServer) detectAndConnectBluetoothPorts() map[string]bool {
 		if conn, exists := bluetoothDevices[macAddr]; exists && conn.Port != nil {
 			log.Printf("MAC %s is already connected via %s, ignoring new port %s", macAddr, conn.DevPath, devPath)
 			devicesMux.RUnlock()
+			p.Close()
 			continue
 		}
 		devicesMux.RUnlock()
 
-		blue.connectBluetoothDevice(devPath, macAddr)
+		if err := blue.connectBluetoothDevice(devPath, macAddr, p); err != nil {
+			log.Printf("Error connecting to %s (%s): %v", devPath, macAddr, err)
+			p.Close()
+			continue
+		}
 		found[macAddr] = true
 	}
 
 	return found
+}
+
+func SendAndReadLinePort(port goSerial.Port, message string, timeout time.Duration) (string, error) {
+	const (
+		maxRetries     = 3
+		baseRetryDelay = 100 * time.Millisecond
+	)
+
+	if strings.TrimSpace(message) == "" {
+		return "", fmt.Errorf("message cannot be empty")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	var lastErr error
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		if err := port.ResetInputBuffer(); err != nil {
+			log.Printf("Failed to reset input buffer: %v", err)
+		}
+
+		log.Printf("Attempt %d: Sending command to port: %s", attempt, message)
+		_, err := port.Write([]byte(message + "\n"))
+		if err != nil {
+			lastErr = fmt.Errorf("failed to write to port: %w", err)
+			time.Sleep(baseRetryDelay * time.Duration(attempt))
+			continue
+		}
+
+		reader := bufio.NewReader(port)
+		port.SetReadTimeout(timeout)
+
+		responseChan := make(chan string, 1)
+		errChan := make(chan error, 1)
+		go func() {
+			response, err := reader.ReadString('\n')
+			if err != nil {
+				errChan <- fmt.Errorf("failed to read from port: %w", err)
+				return
+			}
+			response = strings.TrimSpace(response)
+			responseChan <- response
+		}()
+
+		select {
+		case response := <-responseChan:
+			log.Printf("Complete answer from port: %s", response)
+			return response, nil
+		case err := <-errChan:
+			lastErr = err
+		case <-ctx.Done():
+			lastErr = fmt.Errorf("timeout waiting for response from port after attempt %d", attempt)
+		}
+
+		if attempt < maxRetries {
+			time.Sleep(baseRetryDelay * time.Duration(attempt))
+		}
+	}
+
+	return "", fmt.Errorf("failed after %d attempts: %w", maxRetries, lastErr)
+}
+
+func isValidMAC(mac string) bool {
+	re := regexp.MustCompile(`^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$`)
+	return re.MatchString(mac)
+}
+
+func (blue *BluetoothServer) connectBluetoothDevice(devPath, macAddr string, p goSerial.Port) error {
+	devicesMux.Lock()
+	if oldConn, ok := bluetoothDevices[macAddr]; ok {
+		_ = oldConn.Port.Close()
+		delete(bluetoothDevices, macAddr)
+	}
+	conn := &BluetoothConnection{
+		MAC:     macAddr,
+		Port:    p,
+		DevPath: devPath,
+	}
+	bluetoothDevices[macAddr] = conn
+	devicesMux.Unlock()
+
+	time.Sleep(1 * time.Second)
+
+	if !pingBluetoothDevice(macAddr) {
+		log.Printf("Failed to ping device %s after connection", macAddr)
+		_ = p.Close()
+		devicesMux.Lock()
+		delete(bluetoothDevices, macAddr)
+		devicesMux.Unlock()
+		return fmt.Errorf("failed to ping device %s", macAddr)
+	}
+
+	resp, err := SendAndReadLine(macAddr, "WHOAREYOU", 1*time.Second)
+	if err != nil {
+		log.Printf("Error sending WHOAREYOU to %s: %v", macAddr, err)
+		_ = p.Close()
+		devicesMux.Lock()
+		delete(bluetoothDevices, macAddr)
+		devicesMux.Unlock()
+		return fmt.Errorf("failed to send WHOAREYOU: %v", err)
+	}
+
+	log.Printf("Response WHOAREYOU from %s: [%s]", macAddr, resp)
+
+	conn.DeviceType = strings.TrimSpace(resp)
+	switch conn.DeviceType {
+	case "PARKSET":
+		blue.initOrLoadParkSet(macAddr)
+	case "CONTROL":
+		log.Printf("Device CONTROL %s initialized", macAddr)
+	default:
+		log.Printf("Unknown device type [%s] (%s)", conn.DeviceType, macAddr)
+		_ = p.Close()
+		devicesMux.Lock()
+		delete(bluetoothDevices, macAddr)
+		devicesMux.Unlock()
+		return fmt.Errorf("unknown device type: %s", conn.DeviceType)
+	}
+
+	return nil
 }
 
 func SendAndReadLine(mac, message string, timeout time.Duration) (string, error) {
