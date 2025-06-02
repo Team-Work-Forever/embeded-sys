@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:mobile/core/converters/park_set_converter.dart';
 import 'package:mobile/core/helpers/form/form_view_model.dart';
 import 'package:mobile/core/helpers/nav_manager.dart';
@@ -55,7 +56,20 @@ final class HomeViewModel extends FormViewModel {
     super.initAsync();
   }
 
-  List<SectionItem> get sections => _sections;
+  void defineMatrix() {
+    _matrixProvider.defineMatrix(_sections);
+  }
+
+  List<SectionItem> get sections =>
+      _parkSenseProvider.parkSets.map((e) {
+        for (var lot in e.lots) {
+          debugPrint(
+            "ParkID: ${lot.parkLotId} | Col: ${lot.column} | Row: ${lot.row}",
+          );
+        }
+
+        return ParkSetConverter.convertParkSetToSectionItem(e);
+      }).toList();
 
   Future<void> _getAllParkSets() async {
     List<ParkSet> parkSets = await _parkSenseProvider.getAllParkSets();
@@ -92,6 +106,7 @@ final class HomeViewModel extends FormViewModel {
   @override
   void dispose() {
     _parkSenseProvider.unSubscrive(notifyListeners);
+
     super.dispose();
   }
 }

@@ -1,6 +1,8 @@
 package adapters
 
 import (
+	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -79,57 +81,6 @@ func getMACFromNearby(devPath string) (string, error) {
 	}
 }
 
-func SendAndReadLine(mac string, message string, timeout time.Duration) (string, error) {
-	const maxRetries = 3
-	devicesMux.RLock()
-	conn, ok := bluetoothDevices[mac]
-	devicesMux.RUnlock()
-	if !ok {
-		return "", fmt.Errorf("device %s not connected", mac)
-	}
-	conn.mux.Lock()
-	defer conn.mux.Unlock()
-	log.Printf("Attempt 1: Sending command to %s: %s", mac, message)
-	_, err := conn.Port.Write([]byte(message + "\n"))
-	if err != nil {
-		return "", fmt.Errorf("error when writing to %s: %v", mac, err)
-	}
-	conn.Port.SetReadTimeout(timeout)
-	var result []byte
-	buf := make([]byte, 1)
-	start := time.Now()
-	for {
-		n, err := conn.Port.Read(buf)
-		if err != nil || n == 0 {
-			if time.Since(start) > timeout {
-				log.Printf("Timeout for %s: partial response [%s]", mac, string(result))
-				break
-			}
-			continue
-		}
-		result = append(result, buf[:n]...)
-		if buf[0] == '\n' {
-			response := strings.TrimSpace(string(result))
-			log.Printf("Complete answer from %s: %s", mac, response)
-			return response, nil
-		}
-	}
-	return "", fmt.Errorf("timeout waiting for response from Arduino after %d attempts", maxRetries)
-}
-
-func getDeviceStatusWithRaw(mac string) (domain.ParkState, []domain.ParkLotState, []string, error) {
-	resp, err := SendAndReadLine(mac, "GET STATUS", 1*time.Second)
-	if err != nil {
-		return 0, nil, nil, fmt.Errorf("error sending GET STATUS command: %v", err)
-	}
-	return parseStatusResponse(resp)
-}
-
-func pingBluetoothDevice(mac string) bool {
-	resp, err := SendAndReadLine(mac, "PING", 5*time.Second)
-	return err == nil && strings.ToUpper(resp) == "PONG"
-}
-
 func (blue *BluetoothServer) connectBluetoothDevice(devPath, macAddr string) {
 	devicesMux.Lock()
 	if oldConn, ok := bluetoothDevices[macAddr]; ok {
@@ -191,6 +142,185 @@ func (blue *BluetoothServer) connectBluetoothDevice(devPath, macAddr string) {
 	}
 }
 
+func (blue *BluetoothServer) detectAndConnectBluetoothPorts() map[string]bool {
+	devEntries, err := goSerial.GetPortsList()
+	if err != nil {
+		log.Printf("Error listing serial ports: %v", err)
+		return nil
+	}
+
+	found := make(map[string]bool)
+
+	for _, devPath := range devEntries {
+		if !strings.Contains(devPath, "rfcomm") {
+			continue
+		}
+
+		devicesMux.RLock()
+		isAlreadyUsed := false
+		for _, conn := range bluetoothDevices {
+			if conn.DevPath == devPath {
+				isAlreadyUsed = true
+				break
+			}
+		}
+		devicesMux.RUnlock()
+		if isAlreadyUsed {
+			continue
+		}
+
+		macAddr, err := getMACFromNearby(devPath)
+		if err != nil {
+			log.Printf("Error obtaining MAC from %s: %v", devPath, err)
+			continue
+		}
+
+		devicesMux.RLock()
+		if conn, exists := bluetoothDevices[macAddr]; exists && conn.Port != nil {
+			log.Printf("MAC %s is already connected via %s, ignoring new port %s", macAddr, conn.DevPath, devPath)
+			devicesMux.RUnlock()
+			continue
+		}
+		devicesMux.RUnlock()
+
+		blue.connectBluetoothDevice(devPath, macAddr)
+		found[macAddr] = true
+	}
+
+	return found
+}
+
+func SendAndReadLine(mac, message string, timeout time.Duration) (string, error) {
+	const (
+		maxRetries     = 3
+		baseRetryDelay = 100 * time.Millisecond
+	)
+
+	if strings.TrimSpace(message) == "" {
+		return "", fmt.Errorf("message cannot be empty")
+	}
+
+	devicesMux.RLock()
+	conn, ok := bluetoothDevices[mac]
+	devicesMux.RUnlock()
+	if !ok {
+		return "", fmt.Errorf("device %s not connected", mac)
+	}
+
+	conn.mux.Lock()
+	defer conn.mux.Unlock()
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	var lastErr error
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		if err := conn.Port.ResetInputBuffer(); err != nil {
+			log.Printf("Failed to reset input buffer for %s: %v", mac, err)
+		}
+
+		log.Printf("Attempt %d: Sending command to %s: %s", attempt, mac, message)
+		_, err := conn.Port.Write([]byte(message + "\n"))
+		if err != nil {
+			lastErr = fmt.Errorf("failed to write to %s: %w", mac, err)
+			time.Sleep(baseRetryDelay * time.Duration(attempt))
+			continue
+		}
+
+		reader := bufio.NewReader(conn.Port)
+		conn.Port.SetReadTimeout(timeout)
+
+		responseChan := make(chan string, 1)
+		errChan := make(chan error, 1)
+		go func() {
+			response, err := reader.ReadString('\n')
+			if err != nil {
+				errChan <- fmt.Errorf("failed to read from %s: %w", mac, err)
+				return
+			}
+			response = strings.TrimSpace(response)
+			responseChan <- response
+		}()
+
+		select {
+		case response := <-responseChan:
+			log.Printf("Complete answer from %s: %s", mac, response)
+			return response, nil
+		case err := <-errChan:
+			lastErr = err
+		case <-ctx.Done():
+			lastErr = fmt.Errorf("timeout waiting for response from %s after attempt %d", mac, attempt)
+		}
+
+		if attempt < maxRetries {
+			time.Sleep(baseRetryDelay * time.Duration(attempt))
+		}
+	}
+
+	return "", fmt.Errorf("failed after %d attempts: %w", maxRetries, lastErr)
+}
+
+func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, []string, error) {
+	resp = strings.TrimSpace(resp)
+	if resp == "" {
+		return 0, nil, nil, fmt.Errorf("empty response")
+	}
+	parts := strings.Split(resp, ";")
+	log.Printf("Raw response: %s", resp)
+
+	if len(parts) < 2 {
+		return 0, nil, nil, fmt.Errorf("invalid answer: %s", resp)
+	}
+
+	var parkSetState domain.ParkState
+	switch strings.ToUpper(parts[0]) {
+	case "FIRE":
+		parkSetState = domain.Fire
+	case "NORMAL":
+		parkSetState = domain.Normal
+	default:
+		return 0, nil, nil, fmt.Errorf("unknown status: %s", parts[0])
+	}
+
+	var lotStates []domain.ParkLotState
+	var rawStates []string
+
+	for _, s := range parts[1:] {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			return 0, nil, nil, fmt.Errorf("empty slot status")
+		}
+		rawStates = append(rawStates, s)
+
+		base := strings.ToUpper(strings.SplitN(s, ":", 2)[0])
+		switch base {
+		case "FREE":
+			lotStates = append(lotStates, domain.Free)
+		case "OCCUPIED":
+			lotStates = append(lotStates, domain.Occupied)
+		case "RESERVED":
+			lotStates = append(lotStates, domain.Reserved)
+		default:
+			return 0, nil, nil, fmt.Errorf("slot status unknown: %s", s)
+		}
+	}
+
+	return parkSetState, lotStates, rawStates, nil
+}
+
+func getDeviceStatusWithRaw(mac string) (domain.ParkState, []domain.ParkLotState, []string, error) {
+	resp, err := SendAndReadLine(mac, "GET STATUS", 1*time.Second)
+	if err != nil {
+		return 0, nil, nil, fmt.Errorf("error sending GET STATUS command: %v", err)
+	}
+	return parseStatusResponse(resp)
+}
+
+func pingBluetoothDevice(mac string) bool {
+	resp, err := SendAndReadLine(mac, "PING", 5*time.Second)
+	return err == nil && strings.ToUpper(resp) == "PONG"
+}
+
 func (blue *BluetoothServer) initOrLoadParkSet(mac string) {
 	mac = strings.ToUpper(mac)
 
@@ -202,7 +332,6 @@ func (blue *BluetoothServer) initOrLoadParkSet(mac string) {
 		return
 	}
 
-	log.Printf("Checking if MAC %s already exists in the repository...", mac)
 	parkSet, err := blue.parkSetRepo.GetByMAC(mac)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Printf("Error retrieving ParkSet for MAC %s: %v", mac, err)
@@ -243,7 +372,6 @@ func (blue *BluetoothServer) initOrLoadParkSet(mac string) {
 					}
 				}
 			}
-			log.Printf("ParkSet %s reactivated with existing lots", mac)
 		} else {
 			parkSet.State = psState
 			if err := blue.parkSetRepo.Update(parkSet); err != nil {
@@ -261,7 +389,7 @@ func (blue *BluetoothServer) initOrLoadParkSet(mac string) {
 			}
 		}
 		conn.Device = parkSet
-		log.Printf("Device %s associated with MAC %s (reactivated and synchronised)", mac, mac)
+		log.Printf("Device %s, %s associated with MAC %s (reactivated and synchronised)", conn.DeviceType, conn.DevPath, mac)
 		return
 	}
 
@@ -279,7 +407,56 @@ func (blue *BluetoothServer) initOrLoadParkSet(mac string) {
 
 	blue.deviceStore.AddDevice(parkSet)
 	conn.Device = parkSet
-	log.Printf("Device %s associated with MAC %s (new)", mac, mac)
+	log.Printf("Device %s, %s associated with MAC %s (new)", conn.DeviceType, conn.DevPath, mac)
+}
+
+func (blue *BluetoothServer) cleanupDisconnectedDevices(found map[string]bool) {
+	var toDisconnect []string
+	devicesMux.RLock()
+	for mac := range bluetoothDevices {
+		if !found[mac] && !pingBluetoothDevice(mac) {
+			log.Printf("Device %s did not respond to ping, will be disconnected", mac)
+			toDisconnect = append(toDisconnect, mac)
+		}
+	}
+	devicesMux.RUnlock()
+
+	for _, mac := range toDisconnect {
+		devicesMux.Lock()
+		conn, exists := bluetoothDevices[mac]
+		if !exists {
+			log.Printf("Device %s already removed from bluetoothDevices", mac)
+			devicesMux.Unlock()
+			continue
+		}
+
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Panic recovered while disconnecting device %s: %v", mac, r)
+			}
+			devicesMux.Unlock()
+		}()
+		if conn.DeviceType == "PARKSET" && conn.Device != nil {
+			for _, lot := range conn.Device.Lots {
+				if err := blue.parkSetRepo.DeleteReservationsBySlotId(lot.PublicId); err != nil {
+					log.Printf("Error deleting reservations for lot %s of ParkSet %s: %v", lot.PublicId, mac, err)
+				}
+			}
+			if err := blue.parkSetRepo.DeleteParkSetAndLots(conn.Device); err != nil {
+				log.Printf("Error deleting ParkSet %s and its lots: %v", mac, err)
+			} else {
+				log.Printf("ParkSet %s and its lots marked as deleted in the database", mac)
+			}
+			blue.deviceStore.RemoveDevice(mac)
+			log.Printf("ParkSet %s removed from memory store", mac)
+		}
+		if conn.Port != nil {
+			_ = conn.Port.Close()
+			log.Printf("Port for %s closed", mac)
+		}
+		delete(bluetoothDevices, mac)
+		log.Printf("Device %s removed from bluetoothDevices", mac)
+	}
 }
 
 func (blue *BluetoothServer) UpdateParkSet() {
@@ -339,55 +516,6 @@ func (blue *BluetoothServer) UpdateParkSet() {
 	}
 }
 
-func (blue *BluetoothServer) cleanupDisconnectedDevices(found map[string]bool) {
-	var toDisconnect []string
-	devicesMux.RLock()
-	for mac := range bluetoothDevices {
-		if !found[mac] && !pingBluetoothDevice(mac) {
-			log.Printf("Device %s did not respond to ping, will be disconnected", mac)
-			toDisconnect = append(toDisconnect, mac)
-		}
-	}
-	devicesMux.RUnlock()
-
-	for _, mac := range toDisconnect {
-		devicesMux.Lock()
-		conn, exists := bluetoothDevices[mac]
-		if !exists {
-			log.Printf("Device %s already removed from bluetoothDevices", mac)
-			devicesMux.Unlock()
-			continue
-		}
-
-		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("Panic recovered while disconnecting device %s: %v", mac, r)
-			}
-			devicesMux.Unlock()
-		}()
-		if conn.DeviceType == "PARKSET" && conn.Device != nil {
-			for _, lot := range conn.Device.Lots {
-				if err := blue.parkSetRepo.DeleteReservationsBySlotId(lot.PublicId); err != nil {
-					log.Printf("Error deleting reservations for lot %s of ParkSet %s: %v", lot.PublicId, mac, err)
-				}
-			}
-			if err := blue.parkSetRepo.DeleteParkSetAndLots(conn.Device); err != nil {
-				log.Printf("Error deleting ParkSet %s and its lots: %v", mac, err)
-			} else {
-				log.Printf("ParkSet %s and its lots marked as deleted in the database", mac)
-			}
-			blue.deviceStore.RemoveDevice(mac)
-			log.Printf("ParkSet %s removed from memory store", mac)
-		}
-		if conn.Port != nil {
-			_ = conn.Port.Close()
-			log.Printf("Port for %s closed", mac)
-		}
-		delete(bluetoothDevices, mac)
-		log.Printf("Device %s removed from bluetoothDevices", mac)
-	}
-}
-
 func (blue *BluetoothServer) UpdateControlDevices() {
 	devicesMux.RLock()
 	defer devicesMux.RUnlock()
@@ -432,104 +560,22 @@ func (blue *BluetoothServer) Serve() error {
 	for {
 		found := blue.detectAndConnectBluetoothPorts()
 		blue.cleanupDisconnectedDevices(found)
+
 		blue.UpdateParkSet()
 		blue.UpdateControlDevices()
-		time.Sleep(2 * time.Second)
-	}
-}
 
-func (blue *BluetoothServer) detectAndConnectBluetoothPorts() map[string]bool {
-	devEntries, err := goSerial.GetPortsList()
-	if err != nil {
-		log.Printf("Error listing serial ports: %v", err)
-		return nil
-	}
+		allParkSets, err := blue.parkSetRepo.GetAllParkSets()
 
-	found := make(map[string]bool)
-
-	for _, devPath := range devEntries {
-		if !strings.Contains(devPath, "rfcomm") {
-			continue
-		}
-
-		devicesMux.RLock()
-		isAlreadyUsed := false
-		for _, conn := range bluetoothDevices {
-			if conn.DevPath == devPath {
-				isAlreadyUsed = true
-				break
-			}
-		}
-		devicesMux.RUnlock()
-		if isAlreadyUsed {
-			continue
-		}
-
-		macAddr, err := getMACFromNearby(devPath)
 		if err != nil {
-			log.Printf("Error obtaining MAC from %s: %v", devPath, err)
+			log.Printf("Error retrieving all ParkSets: %v", err)
 			continue
 		}
 
-		devicesMux.RLock()
-		if conn, exists := bluetoothDevices[macAddr]; exists && conn.Port != nil {
-			log.Printf("MAC %s is already connected via %s, ignoring new port %s", macAddr, conn.DevPath, devPath)
-			devicesMux.RUnlock()
-			continue
+		for _, parkSet := range allParkSets {
+			blue.deviceStore.RemoveDevice(parkSet.MAC)
+			blue.deviceStore.AddDevice(parkSet)
 		}
-		devicesMux.RUnlock()
 
-		blue.connectBluetoothDevice(devPath, macAddr)
-		found[macAddr] = true
+		time.Sleep(1 * time.Second)
 	}
-
-	return found
-}
-
-func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, []string, error) {
-	resp = strings.TrimSpace(resp)
-	if resp == "" {
-		return 0, nil, nil, fmt.Errorf("empty response")
-	}
-	parts := strings.Split(resp, ";")
-	log.Printf("Raw response: %s", resp)
-
-	if len(parts) < 2 {
-		return 0, nil, nil, fmt.Errorf("invalid answer: %s", resp)
-	}
-
-	var parkSetState domain.ParkState
-	switch strings.ToUpper(parts[0]) {
-	case "FIRE":
-		parkSetState = domain.Fire
-	case "NORMAL":
-		parkSetState = domain.Normal
-	default:
-		return 0, nil, nil, fmt.Errorf("unknown status: %s", parts[0])
-	}
-
-	var lotStates []domain.ParkLotState
-	var rawStates []string
-
-	for _, s := range parts[1:] {
-		s = strings.TrimSpace(s)
-		if s == "" {
-			return 0, nil, nil, fmt.Errorf("empty slot status")
-		}
-		rawStates = append(rawStates, s)
-
-		base := strings.ToUpper(strings.SplitN(s, ":", 2)[0])
-		switch base {
-		case "FREE":
-			lotStates = append(lotStates, domain.Free)
-		case "OCCUPIED":
-			lotStates = append(lotStates, domain.Occupied)
-		case "RESERVED":
-			lotStates = append(lotStates, domain.Reserved)
-		default:
-			return 0, nil, nil, fmt.Errorf("slot status unknown: %s", s)
-		}
-	}
-
-	return parkSetState, lotStates, rawStates, nil
 }

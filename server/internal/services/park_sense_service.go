@@ -95,7 +95,6 @@ func (park *ParkSenseServiceImpl) StreamIncomingParkLot(request *emptypb.Empty, 
 				return nil
 			}
 
-			log.Println("Send new stuff")
 			if err := stream.Send(mapToProtoParkSet(device)); err != nil {
 				log.Printf("Error sending update to client: %v", err)
 				return err
