@@ -224,20 +224,41 @@ func (blue *BluetoothServer) initOrLoadParkSet(mac string) {
 				return
 			}
 			parkSet.Lots = existingLots
+
+			if err := blue.parkSetRepo.Update(parkSet); err != nil {
+				log.Printf("Error updating ParkSet %s: %v", mac, err)
+				return
+			}
+
 			for i := range parkSet.Lots {
-				parkSet.Lots[i].DeletedAt = &gorm.DeletedAt{}
+				if err := blue.parkSetRepo.ReviveLot(parkSet.Lots[i].PublicId); err != nil {
+					log.Printf("Error reviving lot %s: %v", parkSet.Lots[i].ID, err)
+					continue
+				}
+				if i < len(lotStates) {
+					lot := &parkSet.Lots[i]
+					lot.State = lotStates[i]
+					if err := blue.parkSetRepo.UpdateLot(lot); err != nil {
+						log.Printf("Error updating lot %s: %v", lot.ID, err)
+					}
+				}
 			}
 			log.Printf("ParkSet %s reactivated with existing lots", mac)
-		}
-		parkSet.State = psState
-		for i, lotState := range lotStates {
-			if i < len(parkSet.Lots) {
-				parkSet.Lots[i].State = lotState
+		} else {
+			parkSet.State = psState
+			if err := blue.parkSetRepo.Update(parkSet); err != nil {
+				log.Printf("Error updating ParkSet %s: %v", mac, err)
+				return
 			}
-		}
-		if err := blue.parkSetRepo.Update(parkSet); err != nil {
-			log.Printf("Error updating ParkSet %s: %v", mac, err)
-			return
+			for i, lotState := range lotStates {
+				if i < len(parkSet.Lots) {
+					lot := &parkSet.Lots[i]
+					lot.State = lotState
+					if err := blue.parkSetRepo.UpdateLot(lot); err != nil {
+						log.Printf("Error updating lot %s: %v", lot.ID, err)
+					}
+				}
+			}
 		}
 		conn.Device = parkSet
 		log.Printf("Device %s associated with MAC %s (reactivated and synchronised)", mac, mac)
@@ -344,24 +365,16 @@ func (blue *BluetoothServer) cleanupDisconnectedDevices(found map[string]bool) {
 			}
 			devicesMux.Unlock()
 		}()
-
 		if conn.DeviceType == "PARKSET" && conn.Device != nil {
-			now := time.Now()
-			conn.Device.DeletedAt = &gorm.DeletedAt{Time: now, Valid: true}
-			for i := range conn.Device.Lots {
-				lot := &conn.Device.Lots[i]
-				lot.DeletedAt = &gorm.DeletedAt{Time: now, Valid: true}
+			for _, lot := range conn.Device.Lots {
 				if err := blue.parkSetRepo.DeleteReservationsBySlotId(lot.PublicId); err != nil {
 					log.Printf("Error deleting reservations for lot %s of ParkSet %s: %v", lot.PublicId, mac, err)
 				}
-				if err := blue.parkSetRepo.UpdateLot(lot); err != nil {
-					log.Printf("Error marking lot %s as deleted for ParkSet %s: %v", lot.PublicId, mac, err)
-				}
 			}
-			if err := blue.parkSetRepo.Update(conn.Device); err != nil {
-				log.Printf("Error marking ParkSet %s as deleted: %v", mac, err)
+			if err := blue.parkSetRepo.DeleteParkSetAndLots(conn.Device); err != nil {
+				log.Printf("Error deleting ParkSet %s and its lots: %v", mac, err)
 			} else {
-				log.Printf("ParkSet %s marked as deleted in the database", mac)
+				log.Printf("ParkSet %s and its lots marked as deleted in the database", mac)
 			}
 			blue.deviceStore.RemoveDevice(mac)
 			log.Printf("ParkSet %s removed from memory store", mac)

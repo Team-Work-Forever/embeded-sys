@@ -4,6 +4,7 @@ import (
 	"log"
 	"server/internal/domain"
 	"server/pkg"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -20,9 +21,11 @@ type (
 		GetLotByPublicId(publicId string) (*domain.ParkLot, error)
 		UpdateLot(lot *domain.ParkLot) error
 		UpdateLotState(publicId string, state domain.ParkLotState) error
+		ReviveLot(publicId string) error
 		GetByMAC(mac string) (*domain.ParkSet, error)
 		GetLotsByParkSetID(parkSetID string) ([]domain.ParkLot, error)
 		DeleteReservationsBySlotId(slotId string) error
+		DeleteParkSetAndLots(parkSet *domain.ParkSet) error
 	}
 )
 
@@ -61,6 +64,14 @@ func (pr *ParkSetRepository) UpdateLotState(publicId string, state domain.ParkLo
 		Update("state", state).Error
 }
 
+func (pr *ParkSetRepository) ReviveLot(id string) error {
+	db := (*gorm.DB)(pr.Context)
+	return db.Unscoped().
+		Model(&domain.ParkLot{}).
+		Where("id = ?", id).
+		Update("deleted_at", nil).Error
+}
+
 func (pr *ParkSetRepository) GetByMAC(mac string) (*domain.ParkSet, error) {
 	var parkSet domain.ParkSet
 	db := (*gorm.DB)(pr.Context)
@@ -89,4 +100,29 @@ func (pr *ParkSetRepository) DeleteReservationsBySlotId(slotId string) error {
 	}
 	log.Printf("Reservations for slot %s deleted", slotId)
 	return nil
+}
+
+func (pr *ParkSetRepository) DeleteParkSetAndLots(parkSet *domain.ParkSet) error {
+	db := (*gorm.DB)(pr.Context)
+
+	tx := db.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	now := time.Now()
+
+	if err := tx.Model(parkSet).Update("deleted_at", now).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Model(&domain.ParkLot{}).
+		Where("park_set_id = ?", parkSet.ID).
+		Update("deleted_at", now).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
