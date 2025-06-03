@@ -119,14 +119,14 @@ class ListParkingLot extends StatelessWidget {
                       _buildIdentifier(state.color, dimension),
                       state.displayValue,
                     ),
-                  _buildCaptionItem(
-                    Icon(
-                      Icons.directions_car_filled_rounded,
-                      color: AppColor.primaryColor,
-                      size: dimension,
-                    ),
-                    LocaleContext.get().auth_home_caption_my_car,
-                  ),
+                  // _buildCaptionItem(
+                  //   Icon(
+                  //     Icons.directions_car_filled_rounded,
+                  //     color: AppColor.primaryColor,
+                  //     size: dimension,
+                  //   ),
+                  //   LocaleContext.get().auth_home_caption_my_car,
+                  // ),
                 ],
               ),
             )

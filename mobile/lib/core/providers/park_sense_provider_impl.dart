@@ -13,6 +13,7 @@ class ParkSenseProviderImpl extends ViewModel implements ParkSenseProvider {
 
   late StreamSubscription<ParkSet> _subscription;
   late bool _isListening = false;
+  late Map<String, DateTime> _lastSeen = {};
 
   List<ParkSet> _parkSets = [];
   ParkSet? _latest;
@@ -26,12 +27,25 @@ class ParkSenseProviderImpl extends ViewModel implements ParkSenseProvider {
   List<ParkSet> get parkSets => _parkSets;
 
   void _addParkSet(ParkSet parkSet) {
-    if (_parkSets.any((ps) => ps.parkSetId == parkSet.parkSetId)) {
-      _parkSets.removeWhere((ps) => ps.parkSetId == parkSet.parkSetId);
-    }
+    _lastSeen[parkSet.parkSetId] = DateTime.now();
 
+    _parkSets.removeWhere((ps) => ps.parkSetId == parkSet.parkSetId);
     _parkSets.add(parkSet);
+
+    _cleanupExpired();
     notifyListeners();
+  }
+
+  void _cleanupExpired() {
+    final now = DateTime.now();
+    final expiredIds =
+        _lastSeen.entries
+            .where((e) => now.difference(e.value).inSeconds > 5)
+            .map((e) => e.key)
+            .toList();
+
+    _parkSets.removeWhere((ps) => expiredIds.contains(ps.parkSetId));
+    expiredIds.forEach(_lastSeen.remove);
   }
 
   void _subscriveToStream() {
