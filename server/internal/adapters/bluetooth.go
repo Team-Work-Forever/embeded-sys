@@ -531,7 +531,7 @@ func (blue *BluetoothServer) UpdateParkSet() {
 			log.Printf("ParkSet %s set to FIRE status, cancelling all reservations", mac)
 			for i, lot := range conn.Device.Lots {
 				blue.Service.CancelReservationBySlotId(lot.PublicId)
-				if err := blue.ChangeParkLotState(mac, i+1, domain.Free); err != nil {
+				if err := blue.ChangeParkLotState(mac, i+1, domain.Free, nil); err != nil {
 					log.Printf("Error setting slot %d to FREE in %s: %v", i+1, mac, err)
 					continue
 				}
@@ -607,8 +607,17 @@ func (blue *BluetoothServer) UpdateControlDevices() {
 	}
 }
 
-func (blue *BluetoothServer) ChangeParkLotState(mac string, lotNumber int, state domain.ParkLotState) error {
-	cmd := fmt.Sprintf("SET %d %v", lotNumber, domain.GetParkLotState(state))
+func (blue *BluetoothServer) ChangeParkLotState(mac string, lotNumber int, state domain.ParkLotState, timestamp *time.Time) error {
+	var cmd string
+	if state == domain.Reserved && timestamp != nil {
+		remainingMillis := time.Until(*timestamp).Milliseconds()
+		if remainingMillis < 0 {
+			remainingMillis = 0
+		}
+		cmd = fmt.Sprintf("SET %d RESERVED %d", lotNumber, remainingMillis)
+	} else {
+		cmd = fmt.Sprintf("SET %d %v", lotNumber, domain.GetParkLotState(state))
+	}
 	resp, err := SendAndReadLine(mac, cmd, 1*time.Second)
 	log.Printf("Sending SET command to %s: %s, response: %s", mac, cmd, resp)
 	if err != nil {

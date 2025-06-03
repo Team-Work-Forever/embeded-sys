@@ -35,7 +35,7 @@ type (
 var _ adapters.ReservationFinalizer = (*ParkSenseServiceImpl)(nil)
 
 type BluetoothController interface {
-	ChangeParkLotState(deviceID string, lotNumber int, state domain.ParkLotState) error
+	ChangeParkLotState(deviceID string, lotNumber int, state domain.ParkLotState, timestamp *time.Time) error
 }
 
 func NewParkSenseServiceImpl(deviceStore domain.DeviceStore, reserveRepo repositories.IReserveRepository, reserveHistoryRepo repositories.IReserveHistoryRepository, authRepo repositories.IAuthRepository, parkSenseRepo repositories.IParkSetRepository, bluetooth BluetoothController) *ParkSenseServiceImpl {
@@ -143,7 +143,6 @@ func (s *ParkSenseServiceImpl) CreateReserve(ctx context.Context, req *proto.Cre
 	}
 
 	parkLot.State = domain.Reserved
-
 	if err := s.parkSenseRepo.UpdateLot(parkLot); err != nil {
 		log.Printf("Failed to update lot state: %v", err)
 		return nil, status.Error(codes.Internal, "Could not update parking slot state")
@@ -152,7 +151,7 @@ func (s *ParkSenseServiceImpl) CreateReserve(ctx context.Context, req *proto.Cre
 	if s.bluetooth != nil {
 		deviceID, lotNumber := utils.FindDeviceAndLotNumberBySlotId(parkLot.PublicId)
 		if deviceID != "" && lotNumber > 0 {
-			s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State)
+			s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State, &reserve.Timestamp)
 		}
 	}
 
@@ -270,7 +269,7 @@ func (s *ParkSenseServiceImpl) CancelReserve(ctx context.Context, req *proto.Can
 	if s.bluetooth != nil {
 		deviceID, lotNumber := utils.FindDeviceAndLotNumberBySlotId(parkLot.PublicId)
 		if deviceID != "" && lotNumber > 0 {
-			s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State)
+			s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State, nil)
 		}
 	}
 
@@ -326,7 +325,7 @@ func (s *ParkSenseServiceImpl) FinalizeReservationBySlotId(slotId string) {
 		if s.bluetooth != nil {
 			deviceID, lotNumber := utils.FindDeviceAndLotNumberBySlotId(parkLot.PublicId)
 			if deviceID != "" && lotNumber > 0 {
-				s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State)
+				s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State, &reserve.Timestamp)
 			}
 		}
 	}
@@ -348,7 +347,7 @@ func (s *ParkSenseServiceImpl) CancelReservationBySlotId(slotId string) {
 		if s.bluetooth != nil {
 			deviceID, lotNumber := utils.FindDeviceAndLotNumberBySlotId(parkLot.PublicId)
 			if deviceID != "" && lotNumber > 0 {
-				s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State)
+				s.bluetooth.ChangeParkLotState(deviceID, lotNumber, parkLot.State, nil)
 			}
 		}
 	}

@@ -42,6 +42,14 @@ public:
             spots[index].setState(SpotState::Emergency);
     }
 
+    void setSpotReserved(int index, unsigned long timestamp)
+    {
+        if (index < 0 || index >= numSpots)
+            return;
+
+        spots[index].setReserved(timestamp);
+    }
+
     void update(bool emergency = false)
     {
         if (emergency)

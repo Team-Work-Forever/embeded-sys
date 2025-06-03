@@ -3,6 +3,8 @@
 #include "pressure_sensor.h"
 #include <Arduino.h>
 
+#define ULONG_MAX 4294967295UL
+
 enum class SpotState
 {
     Free,
@@ -18,7 +20,8 @@ private:
     PressureSensor sensor;
     SpotState currentState = SpotState::Free;
 
-    unsigned long reservedStartTime = 0;
+    unsigned long reservationStartTime = 0;
+    unsigned long reservationDuration = 0;
     bool wasOccupiedDuringReserve = false;
     const unsigned long reserveTimeout = 120000;
 
@@ -52,15 +55,27 @@ public:
                 specialStateTime = millis();
                 setState(SpotState::Free);
             }
-            else if (millis() - reservedStartTime > reserveTimeout)
-            {
-                reservedExpired = true;
-                specialStateTime = millis();
-                setState(SpotState::Free);
-            }
             else
             {
-                led.reserved();
+                unsigned long currentMillis = millis();
+                unsigned long elapsedSinceReservation = currentMillis - reservationStartTime;
+
+                if (elapsedSinceReservation < reservationDuration)
+                {
+                    led.reserved();
+                    return;
+                }
+
+                if (elapsedSinceReservation > (reservationDuration + reserveTimeout))
+                {
+                    reservedExpired = true;
+                    specialStateTime = currentMillis;
+                    setState(SpotState::Free);
+                }
+                else
+                {
+                    led.reserved();
+                }
             }
             return;
         }
@@ -83,13 +98,26 @@ public:
         }
     }
 
+    void setReserved(unsigned long remainingMillis)
+    {
+        reservationStartTime = millis();
+        reservationDuration = remainingMillis;
+        wasOccupiedDuringReserve = false;
+        reservedUsed = false;
+        reservedExpired = false;
+
+        Serial.print("setReserved: remainingMillis=");
+        Serial.println(remainingMillis);
+
+        setState(SpotState::Reserved);
+    }
+
     void setState(SpotState state)
     {
         currentState = state;
 
         if (state == SpotState::Reserved)
         {
-            reservedStartTime = millis();
             wasOccupiedDuringReserve = false;
             reservedUsed = false;
             reservedExpired = false;

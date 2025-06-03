@@ -16,7 +16,18 @@ public:
         {
             int index = cmd.substring(4, 5).toInt() - 1;
             String state = cmd.substring(6);
-            manager.setSpotState(index, state);
+            if (state.startsWith("RESERVED "))
+            {
+                unsigned long timestamp = strtoul(state.substring(9).c_str(), NULL, 10);
+                manager.setSpotReserved(index, timestamp);
+                Serial.print("Timestamp for reservation: ");
+                Serial.println(timestamp);
+            }
+            else
+            {
+                manager.setSpotState(index, state);
+            }
+
             bt.println("SET OK");
             Serial.print("****** Setting spot ******");
         }
