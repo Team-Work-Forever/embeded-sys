@@ -44,6 +44,8 @@ private:
         if (inDetected && !lastInDetected)
         {
             numCars++;
+            Serial.print("Car entered. Current count: ");
+            Serial.println(numCars);
         }
         lastInDetected = inDetected;
     }
@@ -56,6 +58,8 @@ private:
             if (numCars > 0)
             {
                 numCars--;
+                Serial.print("Car exited. Current count: ");
+                Serial.println(numCars);
             }
         }
         lastOutDetected = outDetected;

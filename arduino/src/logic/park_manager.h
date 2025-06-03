@@ -62,9 +62,17 @@ public:
             statusMessage += ";" + state;
 
             if (parkState == "FIRE")
+            {
                 spots[i].setState(SpotState::Emergency);
-            else
-                spots[i].update();
+                continue;
+            }
+            if (spots[i].getState() == "emergency" && parkState == "NORMAL")
+            {
+                spots[i].setState(SpotState::Free);
+                continue;
+            }
+
+            spots[i].update();
         }
 
         statusMessage = statusMessage;
