@@ -44,6 +44,7 @@ var (
 	BluetoothDevices = bluetoothDevices
 	bluetoothDevices = make(map[string]*BluetoothConnection)
 	devicesMux       sync.RWMutex
+	globalStateFire  = false
 )
 
 func NewBluetoothServer(deviceStore domain.DeviceStore, parkSetRepo repositories.IParkSetRepository, service ReservationFinalizer) *BluetoothServer {
@@ -327,8 +328,10 @@ func parseStatusResponse(resp string) (domain.ParkState, []domain.ParkLotState, 
 	switch strings.ToUpper(parts[0]) {
 	case "FIRE":
 		parkSetState = domain.Fire
+		globalStateFire = true
 	case "NORMAL":
 		parkSetState = domain.Normal
+		globalStateFire = false
 	default:
 		return 0, nil, nil, fmt.Errorf("unknown status: %s", parts[0])
 	}
@@ -559,6 +562,10 @@ func (blue *BluetoothServer) UpdateParkSet() {
 				if base == "occupied" || base == "reserved" {
 					blue.parkSetRepo.UpdateLotState(conn.Device.Lots[i].PublicId, lotState)
 				}
+				if base == "emergency" {
+					log.Printf("Emergency state detected for lot %d in ParkSet %s, setting to OCCUPIED", i+1, mac)
+					blue.parkSetRepo.UpdateLotState(conn.Device.Lots[i].PublicId, domain.Reserved)
+				}
 			}
 		}
 		if err := blue.parkSetRepo.Update(conn.Device); err != nil {
@@ -574,9 +581,26 @@ func (blue *BluetoothServer) UpdateControlDevices() {
 		if conn.DeviceType != "CONTROL" {
 			continue
 		}
-		resp, err := SendAndReadLine(mac, "BUZZER_OFF", 1*time.Second)
+
+		if globalStateFire {
+			resp, err := SendAndReadLine(mac, "BUZZER_ON", 1*time.Second)
+			if err != nil {
+				log.Printf("Error sending BUZZER_ON to %s: %v", mac, err)
+				continue
+			}
+			log.Printf("Device CONTROL %s responded: %s", mac, resp)
+		} else {
+			resp, err := SendAndReadLine(mac, "BUZZER_OFF", 1*time.Second)
+			if err != nil {
+				log.Printf("Error sending BUZZER_OFF to %s: %v", mac, err)
+				continue
+			}
+			log.Printf("Device CONTROL %s responded: %s", mac, resp)
+		}
+
+		resp, err := SendAndReadLine(mac, "CAPACITY", 1*time.Second)
 		if err != nil {
-			log.Printf("Error sending BUZZER_OFF to %s: %v", mac, err)
+			log.Printf("Error sending CAPACITY to %s: %v", mac, err)
 			continue
 		}
 		log.Printf("Device CONTROL %s responded: %s", mac, resp)

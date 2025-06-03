@@ -14,12 +14,12 @@ BluetoothTransmitter bt(BT);
 #define INFRA_RED_OUT_PIN A1
 #define BUZZER_PIN 8
 
-#define LCD_RS_PIN 13
-#define LCD_EN_PIN 12
-#define LCD_D4_PIN 9
-#define LCD_D5_PIN 6
-#define LCD_D6_PIN 5
-#define LCD_D7_PIN 4
+#define LCD_RS_PIN 12
+#define LCD_EN_PIN 6
+#define LCD_D4_PIN 5
+#define LCD_D5_PIN 4
+#define LCD_D6_PIN 3
+#define LCD_D7_PIN 2
 
 InfraRed infraRedIn(INFRA_RED_IN_PIN);
 InfraRed infraRedOut(INFRA_RED_OUT_PIN);

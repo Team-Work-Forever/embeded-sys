@@ -36,6 +36,18 @@ public:
             Serial.println("Sending CONTROL response");
             bt.println("CONTROL");
         }
+        else if (upperCmd == "CAPACITY")
+        {
+            int capacity = carManager.getCarCount();
+            Serial.print("Sending CAPACITY response: ");
+            Serial.println(capacity);
+            bt.println(capacity);
+        }
+        else if (upperCmd == "CONTROL")
+        {
+            Serial.println("Sending CONTROL response");
+            bt.println("CONTROL");
+        }
         else if (upperCmd == "MAC")
         {
             Serial.println("Sending MAC response");
