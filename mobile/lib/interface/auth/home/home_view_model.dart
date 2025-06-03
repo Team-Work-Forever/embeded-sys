@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:mobile/core/converters/park_set_converter.dart';
 import 'package:mobile/core/helpers/form/form_view_model.dart';
 import 'package:mobile/core/helpers/nav_manager.dart';
@@ -62,12 +61,6 @@ final class HomeViewModel extends FormViewModel {
 
   List<SectionItem> get sections =>
       _parkSenseProvider.parkSets.map((e) {
-        for (var lot in e.lots) {
-          debugPrint(
-            "ParkID: ${lot.parkLotId} | Col: ${lot.column} | Row: ${lot.row}",
-          );
-        }
-
         return ParkSetConverter.convertParkSetToSectionItem(e);
       }).toList();
 

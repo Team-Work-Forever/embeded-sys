@@ -9,7 +9,7 @@ extension ReserveCardFromReserve on ReserveItem {
   Widget toCard(BuildContext context, Modal modal) {
     return ReserveCardFactory.cancellable(
       date: date,
-      time: DateFormat('HH:mm').format(date),
+      time: DateFormat('HH:mm').format(date.toLocal()),
       slot: slot ?? '',
       context: context,
       modal: modal,
@@ -19,7 +19,7 @@ extension ReserveCardFromReserve on ReserveItem {
   Widget toCurrentCard(BuildContext context) {
     return ReserveCardFactory.current(
       date: date,
-      time: DateFormat('HH:mm').format(date),
+      time: DateFormat('HH:mm').format(date.toLocal()),
       slot: slot ?? '',
     );
   }
@@ -28,9 +28,12 @@ extension ReserveCardFromReserve on ReserveItem {
 extension ReserveCardFromHistory on ReserveHistoryItem {
   Widget toCard() {
     return ReserveCardFactory.history(
-      date: dateBegin,
-      dateEnd: dateEnd,
-      interval: DateHelper.formatInterval(dateBegin, dateEnd),
+      date: dateBegin.toLocal(),
+      dateEnd: dateEnd.toLocal(),
+      interval: DateHelper.formatInterval(
+        dateBegin.toLocal(),
+        dateEnd.toLocal(),
+      ),
       duration: DateHelper.calculateDurationInMinutes(dateBegin, dateEnd),
       slot: slot ?? '',
     );
